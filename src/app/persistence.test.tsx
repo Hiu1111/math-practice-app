@@ -1,8 +1,9 @@
 import { screen } from '@testing-library/react';
-import { STORAGE_KEYS } from '../services/storageService';
+import { SCHEMA_VERSION, STORAGE_KEYS } from '../services/storageService';
 import { answerQuestion, startSession } from '../test/practiceHelpers';
 import { renderApp } from '../test/renderApp';
-import type { PracticeAttempt, PracticeSession } from '../types';
+import { isSamePattern } from '../services/mistakeService';
+import type { MistakePattern, PracticeAttempt, PracticeSession } from '../types';
 
 const stored = <T,>(key: string): T => JSON.parse(localStorage.getItem(key) ?? 'null') as T;
 
@@ -22,7 +23,7 @@ describe('persistence through the real UI', () => {
     const sessions = stored<PracticeSession[]>(STORAGE_KEYS.sessions);
     expect(sessions[0]).toMatchObject({ attempted: 1, correct: 0, incorrect: 1 });
     expect(sessions[0].completedAt).toBeUndefined();
-    expect(stored(STORAGE_KEYS.version)).toEqual({ version: 1 });
+    expect(stored(STORAGE_KEYS.version)).toEqual({ version: SCHEMA_VERSION });
   });
 
   it('saves the completed session and keeps everything after a "browser restart"', async () => {
@@ -77,5 +78,29 @@ describe('persistence through the real UI', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: /let's practice math/i }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('mistake tracking through the real UI', () => {
+  it('remembers questions marked wrong, once per fact, and keeps them after a restart', async () => {
+    const first = await startSession();
+    await answerQuestion(first.user, false);
+    await answerQuestion(first.user, true);
+    await answerQuestion(first.user, false);
+    first.unmount();
+
+    const patterns = stored<MistakePattern[]>(STORAGE_KEYS.mistakePatterns);
+    expect(patterns.length).toBeGreaterThanOrEqual(1);
+    expect(patterns.length).toBeLessThanOrEqual(2); // two wrong answers; the same fact twice => 1
+    expect(patterns.reduce((sum, p) => sum + p.incorrectCount, 0)).toBe(2);
+    expect(patterns.every((p) => p.operation === 'addition')).toBe(true);
+
+    // Every fact marked wrong has a pattern.
+    const wrongAttempts = stored<PracticeAttempt[]>(STORAGE_KEYS.attempts).filter(
+      (a) => !a.selfReportedCorrect,
+    );
+    for (const a of wrongAttempts) {
+      expect(patterns.some((p) => isSamePattern(p, a))).toBe(true);
+    }
   });
 });

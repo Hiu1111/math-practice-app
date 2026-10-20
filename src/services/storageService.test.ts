@@ -1,6 +1,7 @@
 import { makeAttempt, makeSession } from '../test/fixtures';
 import { MemoryStorage } from '../test/memoryStorage';
 import { DEFAULT_SETTINGS, emptyAppStatistics } from '../types';
+import { computeStatistics } from './statisticsService';
 import {
   MAX_STORED_ATTEMPTS,
   SCHEMA_VERSION,
@@ -216,5 +217,85 @@ describe('clearing data', () => {
     migrate(storage);
     clearAllAppData(storage);
     expect(storage.length).toBe(0);
+  });
+});
+
+describe('mistake patterns in storage (task 53)', () => {
+  const pattern = {
+    id: 'mistake_1',
+    operation: 'multiplication',
+    firstOperand: 8,
+    secondOperand: 7,
+    correctAnswer: 56,
+    difficulty: 2,
+    incorrectCount: 2,
+    similarCorrectCount: 1,
+    firstIncorrectAt: '2026-10-19T10:00:00.000Z',
+    lastIncorrectAt: '2026-10-20T10:00:00.000Z',
+    mastered: false,
+  };
+
+  it('loads valid patterns and drops invalid ones', () => {
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.mistakePatterns]: [
+        pattern,
+        { ...pattern, id: 'zero-divisor', operation: 'division', secondOperand: 0 },
+        { ...pattern, id: 'never-missed', incorrectCount: 0 },
+        'junk',
+      ],
+    });
+    const data = loadAppData(storage);
+    expect(data.mistakePatterns).toEqual([pattern]);
+    expect(data.repaired).toContain('mistakePatterns');
+    expect(storage.json(STORAGE_KEYS.mistakePatterns)).toEqual([pattern]);
+  });
+
+  it('recovers from a corrupted mistake list without touching other data', () => {
+    const attempt = makeAttempt();
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.mistakePatterns]: '{oops',
+      [STORAGE_KEYS.attempts]: [attempt],
+    });
+    const data = loadAppData(storage);
+    expect(data.mistakePatterns).toEqual([]);
+    expect(data.attempts).toEqual([attempt]);
+  });
+});
+
+describe('schema v1 → v2 migration', () => {
+  it('adds review totals to version 1 statistics, counted from stored attempts', () => {
+    const attempts = [
+      makeAttempt({ source: 'mistake-review', mistakePatternId: 'm1' }),
+      makeAttempt({ source: 'mistake-review', mistakePatternId: 'm1', selfReportedCorrect: false }),
+      makeAttempt(),
+    ];
+    const { review: _review, ...v1Statistics } = computeStatistics(attempts);
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.version]: { version: 1 },
+      [STORAGE_KEYS.attempts]: attempts,
+      [STORAGE_KEYS.statistics]: v1Statistics,
+    });
+
+    expect(migrate(storage)).toEqual({ from: 1, to: 2 });
+    expect(storage.json(STORAGE_KEYS.statistics)).toEqual({
+      ...v1Statistics,
+      review: { attempted: 2, correct: 1, incorrect: 1 },
+    });
+    expect(storage.json(STORAGE_KEYS.version)).toEqual({ version: 2 });
+    // The migrated statistics are valid, so nothing needs repairing on load.
+    expect(loadAppData(storage).repaired).toEqual([]);
+  });
+
+  it('upgrades data with no version (v0) all the way to v2', () => {
+    const attempts = [makeAttempt()];
+    const { review: _review, ...oldStatistics } = computeStatistics(attempts);
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.attempts]: attempts,
+      [STORAGE_KEYS.statistics]: oldStatistics,
+    });
+    const data = loadAppData(storage);
+    expect(data.migration).toEqual({ from: 0, to: 2 });
+    expect(data.statistics.review).toEqual({ attempted: 0, correct: 0, incorrect: 0 });
+    expect(data.statistics.attempted).toBe(1);
   });
 });

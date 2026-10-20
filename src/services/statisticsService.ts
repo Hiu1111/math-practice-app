@@ -24,7 +24,10 @@ function addResult(totals: OperationStatistics, correct: boolean): OperationStat
   };
 }
 
-/** Statistics after one more attempt: overall, by operation and by difficulty (spec 20.3). */
+/**
+ * Statistics after one more attempt: overall, by operation, by difficulty
+ * (spec 20.3), and review totals for mistake-review questions.
+ */
 export function applyAttempt(stats: AppStatistics, attempt: PracticeAttempt): AppStatistics {
   const correct = attempt.selfReportedCorrect;
   return {
@@ -37,12 +40,18 @@ export function applyAttempt(stats: AppStatistics, attempt: PracticeAttempt): Ap
       ...stats.byDifficulty,
       [attempt.difficulty]: addResult(stats.byDifficulty[attempt.difficulty], correct),
     },
+    review: attempt.source === 'mistake-review' ? addResult(stats.review, correct) : stats.review,
   };
 }
 
 /** Rebuild statistics from a list of attempts (used to repair corrupted aggregates). */
 export function computeStatistics(attempts: readonly PracticeAttempt[]): AppStatistics {
   return attempts.reduce(applyAttempt, emptyAppStatistics());
+}
+
+/** Review totals rebuilt from attempts (used by the schema v1 → v2 migration). */
+export function computeReviewTotals(attempts: readonly PracticeAttempt[]): OperationStatistics {
+  return computeStatistics(attempts.filter((a) => a.source === 'mistake-review')).review;
 }
 
 /** When a session was last active: its completion time, or its start time if unfinished. */

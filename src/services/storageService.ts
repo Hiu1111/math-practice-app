@@ -3,16 +3,18 @@ import {
   emptyAppStatistics,
   type AppSettings,
   type AppStatistics,
+  type MistakePattern,
   type PracticeAttempt,
   type PracticeSession,
 } from '../types';
 import {
   isStoredSession,
   isValidAttempt,
+  isValidMistakePattern,
   isValidStatistics,
   sanitizeSettings,
 } from '../utils/validation';
-import { computeStatistics } from './statisticsService';
+import { computeReviewTotals, computeStatistics } from './statisticsService';
 
 /** localStorage keys from spec section 11. The app never reads or writes any other key. */
 export const STORAGE_KEYS = {
@@ -32,8 +34,11 @@ const DATA_KEYS = [
   STORAGE_KEYS.statistics,
 ];
 
-/** Current data-schema version (stored as {"version": 1}). */
-export const SCHEMA_VERSION = 1;
+/**
+ * Current data-schema version (stored as {"version": 2}).
+ * v1: first release. v2: statistics gained review totals for mistake-review questions.
+ */
+export const SCHEMA_VERSION = 2;
 
 /**
  * Keep detailed history compact (spec 23). Older detail is dropped first;
@@ -133,6 +138,16 @@ function removeKey(storage: Storage | null, key: string): WriteResult {
  */
 const MIGRATIONS: Record<number, (storage: Storage) => void> = {
   0: () => {},
+  // v1 → v2: add review totals to the stored statistics, counted from stored attempts.
+  1: (storage) => {
+    const stats = readJson(storage, STORAGE_KEYS.statistics);
+    if (stats.status !== 'ok' || typeof stats.value !== 'object' || stats.value === null) return;
+    if ('review' in stats.value) return;
+    const attempts = readJson(storage, STORAGE_KEYS.attempts);
+    const list = attempts.status === 'ok' && Array.isArray(attempts.value) ? attempts.value : [];
+    const review = computeReviewTotals(list.filter(isValidAttempt));
+    writeJson(storage, STORAGE_KEYS.statistics, { ...stats.value, review });
+  },
 };
 
 export interface MigrationResult {
@@ -175,13 +190,14 @@ export function migrate(storage: Storage | null): MigrationResult {
 // Loading
 // ------------------------------------------------------------------
 
-export type DataCategory = 'settings' | 'sessions' | 'attempts' | 'statistics';
+export type DataCategory = 'settings' | 'sessions' | 'attempts' | 'statistics' | 'mistakePatterns';
 
 export interface LoadedData {
   settings: AppSettings;
   sessions: PracticeSession[];
   attempts: PracticeAttempt[];
   statistics: AppStatistics;
+  mistakePatterns: MistakePattern[];
   /** Categories that were missing parts or corrupted and have been repaired. */
   repaired: DataCategory[];
   migration: MigrationResult;
@@ -234,6 +250,12 @@ export function loadAppData(storage: Storage | null): LoadedData {
     writeJson(storage, STORAGE_KEYS.sessions, sessionList.items);
   }
 
+  const mistakeList = loadList(storage, STORAGE_KEYS.mistakePatterns, isValidMistakePattern);
+  if (mistakeList.repaired) {
+    repaired.push('mistakePatterns');
+    writeJson(storage, STORAGE_KEYS.mistakePatterns, mistakeList.items);
+  }
+
   const attemptList = loadList(storage, STORAGE_KEYS.attempts, isValidAttempt);
   if (attemptList.repaired) {
     repaired.push('attempts');
@@ -265,6 +287,7 @@ export function loadAppData(storage: Storage | null): LoadedData {
     settings,
     sessions: sessionList.items,
     attempts: attemptList.items,
+    mistakePatterns: mistakeList.items,
     statistics,
     repaired,
     migration,

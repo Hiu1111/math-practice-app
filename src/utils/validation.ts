@@ -8,6 +8,7 @@ import {
   SESSION_LENGTHS,
   type AppSettings,
   type AppStatistics,
+  type MistakePattern,
   type OperationStatistics,
   type PracticeAttempt,
   type PracticeSession,
@@ -164,7 +165,29 @@ export function isValidStatistics(value: unknown): value is AppStatistics {
     isObject(byOperation) &&
     MATH_OPERATIONS.every((op) => isTotals(byOperation[op])) &&
     isObject(byDifficulty) &&
-    DIFFICULTY_LEVELS.every((level) => isTotals(byDifficulty[level]))
+    DIFFICULTY_LEVELS.every((level) => isTotals(byDifficulty[level])) &&
+    isTotals(v.review)
+  );
+}
+
+/** One stored mistake pattern (spec 10.3). */
+export function isValidMistakePattern(value: unknown): value is MistakePattern {
+  if (!isObject(value)) return false;
+  const m = value;
+  return (
+    typeof m.id === 'string' &&
+    isMathOperation(m.operation) &&
+    isWhole(m.firstOperand) &&
+    isWhole(m.secondOperand) &&
+    isWhole(m.correctAnswer) &&
+    isDifficultyLevel(m.difficulty) &&
+    isCount(m.incorrectCount) &&
+    m.incorrectCount >= 1 &&
+    isCount(m.similarCorrectCount) &&
+    typeof m.firstIncorrectAt === 'string' &&
+    typeof m.lastIncorrectAt === 'string' &&
+    typeof m.mastered === 'boolean' &&
+    !(m.operation === 'division' && m.secondOperand === 0)
   );
 }
 

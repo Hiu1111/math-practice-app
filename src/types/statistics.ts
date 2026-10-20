@@ -14,6 +14,11 @@ export interface AppStatistics {
   incorrect: number;
   byOperation: Record<MathOperation, OperationStatistics>;
   byDifficulty: Record<DifficultyLevel, OperationStatistics>;
+  /**
+   * Totals for mistake-review (similar) questions only. Not in spec 10.4, but
+   * spec 6.6 asks for "number of similar questions practiced". Added in schema v2.
+   */
+  review: OperationStatistics;
 }
 
 /** Mistake-review figures shown on the statistics page (spec §6.6). */
@@ -46,5 +51,6 @@ export function emptyAppStatistics(): AppStatistics {
       3: emptyOperationStatistics(),
       4: emptyOperationStatistics(),
     },
+    review: emptyOperationStatistics(),
   };
 }
