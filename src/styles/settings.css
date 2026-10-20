@@ -1,0 +1,163 @@
+/* ------------------------------------------------------------------
+   Settings page
+   ------------------------------------------------------------------ */
+.settings-saved {
+  min-height: 1.6em;
+  margin: -16px 0 8px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--color-success-strong);
+}
+
+.settings-layout {
+  display: grid;
+  gap: 24px;
+}
+
+.settings-section {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-section__title {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.settings-section__intro {
+  margin: -8px 0 0;
+  color: var(--color-muted);
+}
+
+.settings-section > .settings-section__title:first-child + .settings-section__intro {
+  margin-top: -8px;
+}
+
+.settings-section--danger {
+  border: 2px solid #f5c2c2;
+}
+
+.settings-section--danger .btn {
+  justify-self: start;
+}
+
+.settings-error {
+  margin: -8px 0 0;
+}
+
+/* Toggle rows */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf1fa;
+}
+
+.toggle-row:last-child {
+  border-bottom: 0;
+}
+
+.toggle-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-row__label {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.toggle-row__description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.switch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.switch__track {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border: 2px solid #9aa6c2;
+  border-radius: var(--radius-pill);
+  background: #e3e9f7;
+  transition: background-color 0.15s ease;
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(31, 42, 68, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.switch.is-on .switch__track {
+  border-color: var(--color-primary-strong);
+  background: var(--color-primary);
+}
+
+.switch.is-on .switch__knob {
+  transform: translateX(24px);
+}
+
+.switch.is-on .switch__state {
+  color: var(--color-primary-strong);
+}
+
+.switch__state {
+  min-width: 2em;
+  text-align: left;
+}
+
+/* Select */
+.settings-field {
+  display: grid;
+  gap: 6px;
+}
+
+.select {
+  justify-self: start;
+  min-width: 96px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.select:hover {
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 480px) {
+  .toggle-row {
+    align-items: flex-start;
+  }
+}

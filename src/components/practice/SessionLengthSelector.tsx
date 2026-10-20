@@ -5,10 +5,16 @@ interface SessionLengthSelectorProps {
   value: SessionLength;
   onChange: (length: SessionLength) => void;
   step?: number;
+  legend?: string;
 }
 
 /** Choose 5, 10 or 20 questions, or continuous practice. */
-export function SessionLengthSelector({ value, onChange, step }: SessionLengthSelectorProps) {
+export function SessionLengthSelector({
+  value,
+  onChange,
+  step,
+  legend = 'How many questions?',
+}: SessionLengthSelectorProps) {
   return (
     <fieldset className="selector card">
       <legend className="selector__legend">
@@ -17,7 +23,7 @@ export function SessionLengthSelector({ value, onChange, step }: SessionLengthSe
             {step}
           </span>
         )}
-        How many questions?
+        {legend}
       </legend>
       <div className="radio-grid radio-grid--lengths">
         {SESSION_LENGTHS.map((length) => (

@@ -9,6 +9,7 @@ import { sessionTotal, usePracticeSession } from '../hooks/usePracticeSession';
 import { useAppData, useAppStore } from '../hooks/useAppData';
 import type { PracticeSession, SessionConfig } from '../types';
 import { pickFeedback } from '../utils/feedback';
+import { playResultSound } from '../utils/sound';
 import { DIFFICULTY_INFO, describeOperations } from '../utils/operations';
 import { isValidSessionConfig } from '../utils/validation';
 import type { SetupLocationState } from './PracticeSetupPage';
@@ -66,6 +67,7 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
 
   const handleResult = (selectedAnswer: number, correct: boolean) => {
     if (settings.feedbackMessages) setFeedback((previous) => pickFeedback(correct, previous));
+    if (settings.soundEffects) playResultSound(correct);
     recordResult(selectedAnswer, correct);
   };
 

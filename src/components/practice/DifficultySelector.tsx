@@ -6,10 +6,16 @@ interface DifficultySelectorProps {
   value: DifficultyLevel;
   onChange: (level: DifficultyLevel) => void;
   step?: number;
+  legend?: string;
 }
 
 /** Choose exactly one of the four difficulty levels. */
-export function DifficultySelector({ value, onChange, step }: DifficultySelectorProps) {
+export function DifficultySelector({
+  value,
+  onChange,
+  step,
+  legend = 'Choose a level',
+}: DifficultySelectorProps) {
   return (
     <fieldset className="selector card">
       <legend className="selector__legend">
@@ -18,7 +24,7 @@ export function DifficultySelector({ value, onChange, step }: DifficultySelector
             {step}
           </span>
         )}
-        Choose a level
+        {legend}
       </legend>
       <div className="radio-grid radio-grid--levels">
         {DIFFICULTY_LEVELS.map((level) => (

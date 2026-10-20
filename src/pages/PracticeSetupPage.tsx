@@ -5,8 +5,8 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { DifficultySelector } from '../components/practice/DifficultySelector';
 import { OperationSelector } from '../components/practice/OperationSelector';
 import { SessionLengthSelector } from '../components/practice/SessionLengthSelector';
+import { useAppData } from '../hooks/useAppData';
 import {
-  DEFAULT_SETTINGS,
   type DifficultyLevel,
   type MathOperation,
   type SessionConfig,
@@ -26,15 +26,18 @@ export function PracticeSetupPage() {
   const locationState = location.state as SetupLocationState | null;
   const notice = locationState?.notice;
   const previous = isValidSessionConfig(locationState?.config) ? locationState.config : null;
+  // Start from the previous session's choices if there are any, otherwise the saved defaults.
+  // Changes here apply to this session only; they do not change the saved defaults.
+  const { settings } = useAppData();
 
   const [operations, setOperations] = useState<MathOperation[]>(() => [
-    ...(previous?.operations ?? DEFAULT_SETTINGS.defaultOperations),
+    ...(previous?.operations ?? settings.defaultOperations),
   ]);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(
-    previous?.difficulty ?? DEFAULT_SETTINGS.defaultDifficulty,
+    previous?.difficulty ?? settings.defaultDifficulty,
   );
   const [sessionLength, setSessionLength] = useState<SessionLength>(
-    previous?.sessionLength ?? DEFAULT_SETTINGS.defaultSessionLength,
+    previous?.sessionLength ?? settings.defaultSessionLength,
   );
 
   const canStart = operations.length > 0;

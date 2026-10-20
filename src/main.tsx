@@ -5,6 +5,7 @@ import './styles/global.css';
 import './styles/pages.css';
 import './styles/practice.css';
 import './styles/statistics.css';
+import './styles/settings.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

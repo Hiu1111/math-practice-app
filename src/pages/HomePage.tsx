@@ -1,5 +1,7 @@
+import { useLocation } from 'react-router-dom';
 import { ButtonLink } from '../components/common/Button';
 import { PageContainer } from '../components/layout/PageContainer';
+import type { HomeLocationState } from './SettingsPage';
 
 const SYMBOLS = [
   { op: 'addition', symbol: '+' },
@@ -9,8 +11,16 @@ const SYMBOLS = [
 ];
 
 export function HomePage() {
+  const location = useLocation();
+  const notice = (location.state as HomeLocationState | null)?.notice;
+
   return (
     <PageContainer width="narrow" documentTitle="Home">
+      {notice === 'data-cleared' && (
+        <p className="notice" role="status">
+          All app data has been erased. Everything is back to the starting settings.
+        </p>
+      )}
       <section className="hero card" aria-labelledby="home-title">
         <div className="hero__symbols" aria-hidden="true">
           {SYMBOLS.map(({ op, symbol }) => (
