@@ -141,59 +141,59 @@ Initial routes:
 
 ### 11. Create General Question Utilities
 
-- [ ] Create a random integer utility.
-- [ ] Create an array-shuffling utility.
-- [ ] Create a unique-ID utility.
-- [ ] Add unit tests for each utility.
+- [x] Create a random integer utility.
+- [x] Create an array-shuffling utility.
+- [x] Create a unique-ID utility.
+- [x] Add unit tests for each utility.
 
 ### 12. Implement Addition Questions
 
-- [ ] Generate two operands.
-- [ ] Apply the selected difficulty rules.
-- [ ] Calculate the correct answer.
-- [ ] Generate the display text.
-- [ ] Return a valid `Question` object.
-- [ ] Test minimum and maximum operand ranges.
-- [ ] Test maximum-result restrictions.
+- [x] Generate two operands.
+- [x] Apply the selected difficulty rules.
+- [x] Calculate the correct answer.
+- [x] Generate the display text.
+- [x] Return a valid `Question` object.
+- [x] Test minimum and maximum operand ranges.
+- [x] Test maximum-result restrictions.
 
 ### 13. Implement Subtraction Questions
 
-- [ ] Generate two operands.
-- [ ] Prevent negative answers for the initial version.
-- [ ] Apply the selected difficulty rules.
-- [ ] Calculate the correct answer.
-- [ ] Generate the display text.
-- [ ] Return a valid `Question` object.
-- [ ] Test that the first operand is not smaller than the second.
+- [x] Generate two operands.
+- [x] Prevent negative answers for the initial version.
+- [x] Apply the selected difficulty rules.
+- [x] Calculate the correct answer.
+- [x] Generate the display text.
+- [x] Return a valid `Question` object.
+- [x] Test that the first operand is not smaller than the second.
 
 ### 14. Implement Multiplication Questions
 
-- [ ] Generate two factors.
-- [ ] Apply the selected difficulty rules.
-- [ ] Calculate the correct product.
-- [ ] Generate the display text.
-- [ ] Return a valid `Question` object.
-- [ ] Test factor ranges for every difficulty level.
+- [x] Generate two factors.
+- [x] Apply the selected difficulty rules.
+- [x] Calculate the correct product.
+- [x] Generate the display text.
+- [x] Return a valid `Question` object.
+- [x] Test factor ranges for every difficulty level.
 
 ### 15. Implement Division Questions
 
-- [ ] Generate a nonzero divisor.
-- [ ] Generate a whole-number quotient.
-- [ ] Calculate the dividend from the divisor and quotient.
-- [ ] Apply the selected difficulty rules.
-- [ ] Generate the display text.
-- [ ] Return a valid `Question` object.
-- [ ] Test that division by zero is impossible.
-- [ ] Test that all answers are whole numbers.
+- [x] Generate a nonzero divisor.
+- [x] Generate a whole-number quotient.
+- [x] Calculate the dividend from the divisor and quotient.
+- [x] Apply the selected difficulty rules.
+- [x] Generate the display text.
+- [x] Return a valid `Question` object.
+- [x] Test that division by zero is impossible.
+- [x] Test that all answers are whole numbers.
 
 ### 16. Create the Main Question Generator
 
-- [ ] Accept an operation and difficulty level.
-- [ ] Call the correct operation-specific generator.
-- [ ] Randomly select an operation when multiple operations are enabled.
-- [ ] Validate the generated question.
-- [ ] Handle unexpected generation failures.
-- [ ] Add unit tests for all operations and difficulty levels.
+- [x] Accept an operation and difficulty level.
+- [x] Call the correct operation-specific generator.
+- [x] Randomly select an operation when multiple operations are enabled.
+- [x] Validate the generated question.
+- [x] Handle unexpected generation failures.
+- [x] Add unit tests for all operations and difficulty levels.
 
 ---
 
@@ -201,30 +201,30 @@ Initial routes:
 
 ### 17. Generate Incorrect Answer Choices
 
-- [ ] Generate three incorrect answers.
-- [ ] Ensure incorrect answers differ from the correct answer.
-- [ ] Ensure all choices are unique.
-- [ ] Keep incorrect answers plausible.
-- [ ] Avoid negative choices when negative values are not allowed.
-- [ ] Prevent fractional choices in whole-number questions.
-- [ ] Add a retry limit to prevent infinite loops.
+- [x] Generate three incorrect answers.
+- [x] Ensure incorrect answers differ from the correct answer.
+- [x] Ensure all choices are unique.
+- [x] Keep incorrect answers plausible.
+- [x] Avoid negative choices when negative values are not allowed.
+- [x] Prevent fractional choices in whole-number questions.
+- [x] Add a retry limit to prevent infinite loops.
 
 ### 18. Add Operation-Specific Distractors
 
-- [ ] Generate nearby-number distractors.
-- [ ] Generate addition mistake distractors.
-- [ ] Generate subtraction mistake distractors.
-- [ ] Generate multiplication-table distractors.
-- [ ] Generate division fact-family distractors.
-- [ ] Test common edge cases such as answers near zero.
+- [x] Generate nearby-number distractors.
+- [x] Generate addition mistake distractors.
+- [x] Generate subtraction mistake distractors.
+- [x] Generate multiplication-table distractors.
+- [x] Generate division fact-family distractors.
+- [x] Test common edge cases such as answers near zero.
 
 ### 19. Shuffle the Answer Choices
 
-- [ ] Combine the correct answer with the distractors.
-- [ ] Shuffle all four choices.
-- [ ] Confirm that the correct answer appears exactly once.
-- [ ] Confirm that the correct answer does not remain in a predictable position.
-- [ ] Add automated tests.
+- [x] Combine the correct answer with the distractors.
+- [x] Shuffle all four choices.
+- [x] Confirm that the correct answer appears exactly once.
+- [x] Confirm that the correct answer does not remain in a predictable position.
+- [x] Add automated tests.
 
 ---
 
@@ -943,17 +943,17 @@ For the fastest path to a working demonstration, implement these tasks first:
 
 1. [x] Create the React and TypeScript project.
 2. [x] Define the question types.
-3. [ ] Implement addition question generation.
-4. [ ] Generate four multiple-choice answers.
+3. [x] Implement addition question generation.
+4. [x] Generate four multiple-choice answers.
 5. [ ] Create the question card front.
 6. [ ] Add answer selection.
 7. [ ] Create the card back.
 8. [ ] Add the flip-card behavior.
 9. [ ] Add the right and wrong buttons.
 10. [ ] Generate the next question.
-11. [ ] Add subtraction.
-12. [ ] Add multiplication.
-13. [ ] Add division.
+11. [x] Add subtraction.
+12. [x] Add multiplication.
+13. [x] Add division.
 14. [ ] Add practice-session totals.
 15. [ ] Add the session summary.
 

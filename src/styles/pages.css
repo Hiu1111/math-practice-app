@@ -453,3 +453,55 @@
 .preview-card {
   text-align: center;
 }
+
+.preview-note {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.math-question {
+  margin: 8px 0 24px;
+  font-family: var(--font-math);
+  font-size: clamp(2.6rem, 9vw, 4.2rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+.choice-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.choice-preview li {
+  padding: 16px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-math);
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.choice-preview li.is-correct {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.choice-preview__tag {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-success-strong);
+}
+
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}

@@ -48,6 +48,30 @@ src/
 └── test/         Test setup
 ```
 
+## Difficulty levels
+
+The specification leaves some ranges open, so these are the exact rules the generator uses
+(`src/services/difficultyRules.ts`). Subtraction answers are never negative, and division always
+has a whole-number answer: the generator picks a divisor and a quotient, then multiplies them to
+get the dividend.
+
+| Level            | Addition             | Subtraction | Multiplication               | Division                         |
+| ---------------- | -------------------- | ----------- | ---------------------------- | -------------------------------- |
+| 1 · Beginner     | 0–10 each, sum ≤ 20  | 0–10        | 0–5 × 0–5                    | divisor 1–5, answer 1–5          |
+| 2 · Easy         | 0–50 each, sum ≤ 100 | 0–50        | 0–10 × 0–10                  | divisor 1–10, answer 1–10        |
+| 3 · Intermediate | 0–100 each           | 0–100       | 2–9 × 2–9 or 2–9 × 10–99     | divisor 1–12, answer 1–12 (≤144) |
+| 4 · Advanced     | 10–999 each          | 10–999      | 10–99 × 2–9 or 10–99 × 10–99 | divisor 2–19, answer 10–50       |
+
+Each question has four choices: the correct answer and three wrong answers that are close to it.
+Up to two of the wrong answers come from common mistakes:
+
+- forgetting to carry or borrow
+- a neighbouring times-table fact
+- confusing the divisor with the answer
+
+The remaining wrong answers are nearby numbers. Choices are shuffled, so the correct answer can
+appear in any position.
+
 ## Reference documents
 
 - `specification.md` — application requirements

@@ -70,6 +70,7 @@ export function isDifficultyLevel(value: unknown): value is DifficultyLevel {
 
 /** "Addition and Multiplication", "Addition, Subtraction and Division". */
 export function describeOperations(operations: readonly MathOperation[]): string {
+  if (MATH_OPERATIONS.every((op) => operations.includes(op))) return 'All four (mixed)';
   const labels = operations.map((op) => OPERATION_INFO[op].label);
   if (labels.length <= 1) return labels.join('');
   return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
