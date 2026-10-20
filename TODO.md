@@ -232,56 +232,56 @@ Initial routes:
 
 ### 20. Create the Answer Choice Component
 
-- [ ] Display a single answer choice as a button.
-- [ ] Support selected and unselected states.
-- [ ] Add hover and focus states.
-- [ ] Add a sufficiently large touch target.
-- [ ] Add an accessible label.
-- [ ] Prevent changes after the card has been flipped.
+- [x] Display a single answer choice as a button.
+- [x] Support selected and unselected states.
+- [x] Add hover and focus states.
+- [x] Add a sufficiently large touch target.
+- [x] Add an accessible label.
+- [x] Prevent changes after the card has been flipped.
 
 ### 21. Create the Front of the Question Card
 
-- [ ] Display the arithmetic question.
-- [ ] Display four answer choices.
-- [ ] Display the current question number.
-- [ ] Display the total number of questions.
-- [ ] Add a **Flip Card** button.
-- [ ] Disable the flip button until an answer is selected.
-- [ ] Use large, readable math text.
+- [x] Display the arithmetic question.
+- [x] Display four answer choices.
+- [x] Display the current question number.
+- [x] Display the total number of questions.
+- [x] Add a **Flip Card** button.
+- [x] Disable the flip button until an answer is selected.
+- [x] Use large, readable math text.
 
 ### 22. Add Answer Selection
 
-- [ ] Store the selected answer in component state.
-- [ ] Highlight the selected answer.
-- [ ] Allow the selected answer to be changed before flipping.
-- [ ] Enable the flip button after selection.
-- [ ] Reset the selected answer for each new question.
+- [x] Store the selected answer in component state.
+- [x] Highlight the selected answer.
+- [x] Allow the selected answer to be changed before flipping.
+- [x] Enable the flip button after selection.
+- [x] Reset the selected answer for each new question.
 
 ### 23. Create the Back of the Question Card
 
-- [ ] Display the original question.
-- [ ] Display the correct answer.
-- [ ] Display the student's selected answer.
-- [ ] Add an **I Got It Right** button.
-- [ ] Add an **I Got It Wrong** button.
-- [ ] Prevent both buttons from being selected for the same attempt.
+- [x] Display the original question.
+- [x] Display the correct answer.
+- [x] Display the student's selected answer.
+- [x] Add an **I Got It Right** button.
+- [x] Add an **I Got It Wrong** button.
+- [x] Prevent both buttons from being selected for the same attempt.
 
 ### 24. Add Basic Card-Flipping Behavior
 
-- [ ] Add an `isCardFlipped` state.
-- [ ] Show the front before flipping.
-- [ ] Show the back after flipping.
-- [ ] Prevent answer changes after flipping.
-- [ ] Reset the flip state for the next question.
-- [ ] Ensure the card works without animation.
+- [x] Add an `isCardFlipped` state.
+- [x] Show the front before flipping.
+- [x] Show the back after flipping.
+- [x] Prevent answer changes after flipping.
+- [x] Reset the flip state for the next question.
+- [x] Ensure the card works without animation.
 
 ### 25. Add the Card-Flip Animation
 
-- [ ] Add a CSS flip animation.
-- [ ] Keep the front and back aligned.
-- [ ] Prevent mirrored or unreadable card content.
-- [ ] Support reduced-motion preferences.
-- [ ] Add a setting for disabling animations.
+- [x] Add a CSS flip animation.
+- [x] Keep the front and back aligned.
+- [x] Prevent mirrored or unreadable card content.
+- [x] Support reduced-motion preferences.
+- [x] Add a setting for disabling animations.
 
 ---
 
@@ -945,12 +945,12 @@ For the fastest path to a working demonstration, implement these tasks first:
 2. [x] Define the question types.
 3. [x] Implement addition question generation.
 4. [x] Generate four multiple-choice answers.
-5. [ ] Create the question card front.
-6. [ ] Add answer selection.
-7. [ ] Create the card back.
-8. [ ] Add the flip-card behavior.
-9. [ ] Add the right and wrong buttons.
-10. [ ] Generate the next question.
+5. [x] Create the question card front.
+6. [x] Add answer selection.
+7. [x] Create the card back.
+8. [x] Add the flip-card behavior.
+9. [x] Add the right and wrong buttons.
+10. [x] Generate the next question.
 11. [x] Add subtraction.
 12. [x] Add multiplication.
 13. [x] Add division.

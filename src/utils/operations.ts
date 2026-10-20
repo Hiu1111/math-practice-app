@@ -55,6 +55,18 @@ export function speakQuestion(operation: MathOperation, a: number, b: number): s
   return `What is ${a} ${OPERATION_INFO[operation].spoken} ${b}?`;
 }
 
+/** Screen-reader wording for a solved question, e.g. "7 times 8 equals 56". */
+export function speakEquation(operation: MathOperation, a: number, b: number, answer: number) {
+  return `${a} ${OPERATION_INFO[operation].spoken} ${b} equals ${answer}`;
+}
+
+/** "Question 3 of 10", or "Question 3" for continuous practice. */
+export function questionCountLabel(questionNumber: number, totalQuestions: number | null) {
+  return totalQuestions === null
+    ? `Question ${questionNumber}`
+    : `Question ${questionNumber} of ${totalQuestions}`;
+}
+
 /** Format numbers with thousands separators for display (1,250). */
 export function formatNumber(n: number): string {
   return n.toLocaleString('en-US');

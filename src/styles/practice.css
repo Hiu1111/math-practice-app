@@ -1,0 +1,286 @@
+/* ------------------------------------------------------------------
+   Warning button (used for "I Got It Wrong": warm, not alarming)
+   ------------------------------------------------------------------ */
+.btn--warning {
+  background: #d9480f;
+  color: #fff;
+  box-shadow: 0 4px 0 #a8380a;
+}
+
+.btn--warning:hover {
+  background: #c43f0b;
+}
+
+/* ------------------------------------------------------------------
+   Flip card
+   ------------------------------------------------------------------ */
+.flip-card {
+  perspective: 1400px;
+}
+
+.flip-card--animated {
+  animation: card-enter 0.25s ease-out;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Both faces sit in the same grid cell, so they are always aligned and the
+   card is as tall as the taller face. */
+.flip-card__inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.flip-card__face {
+  grid-area: 1 / 1;
+  min-width: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* The back is pre-rotated so it reads correctly (not mirrored) after the flip. */
+.flip-card__face--back {
+  transform: rotateY(180deg);
+}
+
+.flip-card.is-flipped .flip-card__inner {
+  transform: rotateY(180deg);
+}
+
+/* Animation turned off: no 3D, just show the active face. */
+.flip-card--static .flip-card__inner,
+.flip-card--static.is-flipped .flip-card__inner,
+.flip-card--static .flip-card__face--back {
+  transform: none;
+  transition: none;
+}
+
+.flip-card--static .flip-card__face[aria-hidden='true'] {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card--animated {
+    animation: none;
+  }
+
+  .flip-card__inner,
+  .flip-card.is-flipped .flip-card__inner,
+  .flip-card__face--back {
+    transform: none;
+    transition: none;
+  }
+
+  .flip-card__face[aria-hidden='true'] {
+    visibility: hidden;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Card faces
+   ------------------------------------------------------------------ */
+.question-card {
+  height: 100%;
+  padding: 24px 24px 28px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.question-card--back {
+  border-color: var(--color-primary);
+  background: #f8faff;
+}
+
+.question-card__count {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.question-card .math-question {
+  margin: 8px 0 20px;
+}
+
+.math-question:focus {
+  outline: none;
+}
+
+.math-question--answer {
+  font-size: clamp(2.2rem, 8vw, 3.6rem);
+}
+
+.answer-highlight {
+  padding: 0 0.15em;
+  border-bottom: 6px solid var(--color-success);
+  color: var(--color-success-strong);
+}
+
+.question-card__hint {
+  margin: 0 0 12px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+/* Answer choices */
+.answer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.answer-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 12px 36px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 var(--color-border);
+  font-family: var(--font-math);
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  font-weight: 900;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background-color 0.12s ease,
+    transform 0.08s ease;
+}
+
+.answer-choice:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.answer-choice:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.answer-choice.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: 0 4px 0 var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+.answer-choice:disabled {
+  cursor: default;
+}
+
+.answer-choice__key {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--color-muted);
+}
+
+.answer-choice__check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: #fff;
+  opacity: 0;
+}
+
+.answer-choice.is-selected .answer-choice__check {
+  opacity: 1;
+}
+
+/* Back of card */
+.your-answer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 0 0 16px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.your-answer strong {
+  font-family: var(--font-math);
+  font-size: 1.5rem;
+}
+
+.your-answer.is-match {
+  background: var(--color-success-soft);
+  color: var(--color-success-strong);
+}
+
+.your-answer.is-different {
+  background: #fff0e6;
+  color: #a8380a;
+}
+
+.your-answer__note {
+  font-size: 1rem;
+}
+
+.explanation {
+  max-width: 38ch;
+  margin: 0 auto 16px;
+  font-size: 1.05rem;
+  color: var(--color-muted);
+}
+
+.result-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.result-buttons .btn {
+  padding-inline: 12px;
+}
+
+@media (max-width: 520px) {
+  .question-card {
+    padding: 18px 14px 22px;
+  }
+
+  .result-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .answer-choice {
+    min-height: 72px;
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 340px) {
+  .answer-grid {
+    grid-template-columns: 1fr;
+  }
+}

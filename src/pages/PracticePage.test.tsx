@@ -1,6 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import { renderApp } from '../test/renderApp';
 
+// The hidden card face is aria-hidden; ignore its text when matching.
+const VISIBLE = { ignore: '[aria-hidden="true"] *' };
+
 async function startSession(operation: RegExp, level: RegExp) {
   const result = renderApp('/practice/setup');
   const { user } = result;
@@ -12,37 +15,34 @@ async function startSession(operation: RegExp, level: RegExp) {
   return result;
 }
 
-describe('practice page question preview', () => {
+describe('practice page with question card', () => {
   it('shows a generated question with four unique choices', async () => {
     await startSession(/division/i, /advanced/i);
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^\d+ ÷ \d+ = \?$/);
-    const choices = within(screen.getByRole('list', { name: /answer choices/i })).getAllByRole(
-      'listitem',
+    const choices = within(screen.getByRole('group', { name: /answer choices/i })).getAllByRole(
+      'button',
     );
     expect(choices).toHaveLength(4);
     expect(new Set(choices.map((c) => c.textContent)).size).toBe(4);
   });
 
-  it('gives the question a spoken label for screen readers', async () => {
-    await startSession(/multiplication/i, /beginner/i);
-    expect(screen.getByRole('heading', { level: 2 })).toHaveAccessibleName(
-      /^What is \d+ times \d+\?$/,
-    );
-  });
-
-  it('reveals the correct answer, which matches the arithmetic', async () => {
+  it('reveals the arithmetically correct answer on the back of the card', async () => {
     const { user } = await startSession(/subtraction/i, /easy/i);
     const text = screen.getByRole('heading', { level: 2 }).textContent ?? '';
     const [, a, b] = text.match(/^(\d+) − (\d+)/) ?? [];
-    await user.click(screen.getByRole('button', { name: /show answer/i }));
-    expect(screen.getByText(/✓ answer/).parentElement).toHaveTextContent(String(+a - +b));
+    await user.click(screen.getByRole('button', { name: /^Answer 1:/ }));
+    await user.click(screen.getByRole('button', { name: /flip card/i }));
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(`= ${+a - +b}`);
   });
 
-  it('generates a new question on request', async () => {
+  it('moves to a new card after the student reports a result', async () => {
     const { user } = await startSession(/addition/i, /advanced/i);
-    const heading = screen.getByRole('heading', { level: 2 });
-    const first = heading.textContent;
-    await user.click(screen.getByRole('button', { name: /next question/i }));
-    expect(heading.textContent).not.toBe(first);
+    expect(screen.getByText('Question 1 of 10', VISIBLE)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^Answer 2:/ }));
+    await user.click(screen.getByRole('button', { name: /flip card/i }));
+    await user.click(screen.getByRole('button', { name: /i got it right/i }));
+    expect(screen.getByText('Question 2 of 10', VISIBLE)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /flip card/i })).toBeDisabled();
+    expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
   });
 });

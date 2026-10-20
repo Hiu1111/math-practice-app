@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Button, ButtonLink } from '../components/common/Button';
 import { PageContainer } from '../components/layout/PageContainer';
 import { generateQuestionForOperations } from '../services/questionGenerator';
-import type { Question, SessionConfig } from '../types';
-import {
-  DIFFICULTY_INFO,
-  describeOperations,
-  formatNumber,
-  speakQuestion,
-} from '../utils/operations';
+import { QuestionCard } from '../components/practice/QuestionCard';
+import { DEFAULT_SETTINGS, type Question, type SessionConfig } from '../types';
+import { DIFFICULTY_INFO, describeOperations } from '../utils/operations';
 import { isValidSessionConfig } from '../utils/validation';
 import type { SetupLocationState } from './PracticeSetupPage';
 
@@ -50,58 +45,32 @@ function SessionDetails({ config }: { config: SessionConfig }) {
 }
 
 /**
- * Temporary preview of generated questions (Phases 4–5).
- * Phase 6 replaces this with the interactive flip card.
+ * Phase 6: shows the interactive card and moves to a new question after each
+ * self-report. Phase 7 replaces this with a tracked practice session.
  */
 function QuestionPreview({ config }: { config: SessionConfig }) {
   const [question, setQuestion] = useState<Question>(() =>
     generateQuestionForOperations(config.operations, config.difficulty),
   );
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [questionNumber, setQuestionNumber] = useState(1);
 
   const next = () => {
     setQuestion((previous) =>
       generateQuestionForOperations(config.operations, config.difficulty, { avoid: previous }),
     );
-    setShowAnswer(false);
+    setQuestionNumber((n) => n + 1);
   };
 
   return (
-    <section className="card preview-card" aria-labelledby="preview-question">
-      <p className="preview-note">
-        Preview: the flip cards arrive in the next step. Check the questions and choices here.
-      </p>
-      <h2
-        id="preview-question"
-        className="math-question"
-        aria-label={speakQuestion(
-          question.operation,
-          question.firstOperand,
-          question.secondOperand,
-        )}
-      >
-        {question.displayText} = ?
-      </h2>
-      <ul className="choice-preview" aria-label="Answer choices">
-        {question.choices.map((choice) => {
-          const isAnswer = showAnswer && choice === question.correctAnswer;
-          return (
-            <li key={choice} className={isAnswer ? 'is-correct' : undefined}>
-              {formatNumber(choice)}
-              {isAnswer && <span className="choice-preview__tag"> ✓ answer</span>}
-            </li>
-          );
-        })}
-      </ul>
-      <div className="preview-actions">
-        <Button variant="secondary" onClick={() => setShowAnswer((s) => !s)}>
-          {showAnswer ? 'Hide answer' : 'Show answer'}
-        </Button>
-        <Button onClick={next}>Next question</Button>
-      </div>
-      <ButtonLink to="/practice/setup" variant="ghost">
-        Change Settings
-      </ButtonLink>
-    </section>
+    <QuestionCard
+      key={question.id}
+      question={question}
+      questionNumber={questionNumber}
+      totalQuestions={config.sessionLength === 'continuous' ? null : config.sessionLength}
+      animate={DEFAULT_SETTINGS.cardAnimation}
+      showExplanation={DEFAULT_SETTINGS.showExplanations}
+      autoFocus={questionNumber > 1}
+      onResult={next}
+    />
   );
 }
