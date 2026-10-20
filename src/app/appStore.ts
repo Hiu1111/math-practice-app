@@ -108,7 +108,11 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
       if (state.attempts.some((a) => a.id === attempt.id)) return;
       const statistics = applyAttempt(state.statistics, attempt);
       const sessions = upsertSession(state.sessions, session);
-      const mistakePatterns = updateMistakePatterns(state.mistakePatterns, attempt);
+      const mistakePatterns = updateMistakePatterns(
+        state.mistakePatterns,
+        attempt,
+        state.settings.masteryThreshold,
+      );
       const saved = saveAttempts(storage, [...state.attempts, attempt]);
       const writes = [
         saved.result,

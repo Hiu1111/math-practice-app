@@ -11,6 +11,7 @@ interface RadioCardProps {
   centered?: boolean;
   /** Accessible name, when the visible text alone would read oddly. */
   ariaLabel?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -28,10 +29,11 @@ export function RadioCard({
   badge,
   centered = false,
   ariaLabel,
+  disabled = false,
 }: RadioCardProps) {
   return (
     <label
-      className={`radio-card${checked ? ' is-selected' : ''}${centered ? ' radio-card--center' : ''}`}
+      className={`radio-card${checked ? ' is-selected' : ''}${centered ? ' radio-card--center' : ''}${disabled ? ' is-disabled' : ''}`}
     >
       <input
         type="radio"
@@ -41,6 +43,7 @@ export function RadioCard({
         checked={checked}
         onChange={onSelect}
         aria-label={ariaLabel}
+        disabled={disabled}
       />
       <span className="radio-card__body">
         {badge && <span className="radio-card__badge">{badge}</span>}

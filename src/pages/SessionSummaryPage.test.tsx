@@ -64,7 +64,12 @@ describe('session summary', () => {
   it('offers all five actions from the spec', async () => {
     await finishSession([true, false, true, true, true]);
     expect(screen.getByRole('link', { name: /practice again/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /practice mistakes/i })).toBeInTheDocument();
+    // One wrong answer, so there is a mistake to practice.
+    expect(screen.getByRole('link', { name: /practice mistakes/i })).toHaveAttribute(
+      'href',
+      '/practice/session',
+    );
+    expect(screen.getByText(/1 mistake ready to practice/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /change settings/i })).toHaveAttribute(
       'href',
       '/practice/setup',
@@ -74,6 +79,12 @@ describe('session summary', () => {
       '/statistics',
     );
     expect(screen.getByRole('link', { name: /return home/i })).toHaveAttribute('href', '/');
+  });
+
+  it('disables Practice Mistakes, and says why, when there are no mistakes', async () => {
+    await finishSession([true, true, true, true, true]);
+    expect(screen.getByRole('button', { name: /practice mistakes/i })).toBeDisabled();
+    expect(screen.getByText(/no mistakes to practice/i)).toBeInTheDocument();
   });
 
   it('Practice Again starts a brand-new session with the same settings', async () => {

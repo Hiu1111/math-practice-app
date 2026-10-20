@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { PracticeLocationState } from '../../pages/PracticePage';
 import type { SetupLocationState } from '../../pages/PracticeSetupPage';
+import { useAppData } from '../../hooks/useAppData';
+import { reviewablePatterns } from '../../services/mistakeService';
 import { calculateAccuracy } from '../../services/statisticsService';
 import type { PracticeSession, SessionConfig } from '../../types';
 import { summaryMessage } from '../../utils/feedback';
@@ -25,6 +27,24 @@ export function SessionSummary({ session }: SessionSummaryProps) {
   };
   const practiceAgain: PracticeLocationState = { config };
   const changeSettings: SetupLocationState = { config };
+  const practiceMistakes: PracticeLocationState = {
+    config: { ...config, reviewMode: 'mistake-review' },
+  };
+
+  const { mistakePatterns, settings } = useAppData();
+  const mistakesToPractice = reviewablePatterns(
+    mistakePatterns,
+    config,
+    settings.masteryThreshold,
+  ).length;
+  let mistakesNote: string;
+  if (mistakesToPractice > 0) {
+    mistakesNote = `${mistakesToPractice} ${mistakesToPractice === 1 ? 'mistake' : 'mistakes'} ready to practice.`;
+  } else if (session.reviewMode === 'mistake-review') {
+    mistakesNote = 'You mastered every mistake for this math and level!';
+  } else {
+    mistakesNote = 'No mistakes to practice. Great job!';
+  }
 
   // Announce the result when the summary appears.
   useEffect(() => {
@@ -65,6 +85,10 @@ export function SessionSummary({ session }: SessionSummaryProps) {
 
       <dl className="summary-details" aria-label="Session details">
         <div>
+          <dt>Practice</dt>
+          <dd>{session.reviewMode === 'mistake-review' ? 'Mistake practice' : 'Regular'}</dd>
+        </div>
+        <div>
           <dt>Practiced</dt>
           <dd>{describeOperations(session.operations)}</dd>
         </div>
@@ -84,13 +108,23 @@ export function SessionSummary({ session }: SessionSummaryProps) {
         <ButtonLink to="/practice/session" state={practiceAgain} size="lg" block>
           <span aria-hidden="true">🔁</span> Practice Again
         </ButtonLink>
-        <Button variant="secondary" block disabled aria-describedby="practice-mistakes-note">
-          <span aria-hidden="true">🎯</span> Practice Mistakes
-        </Button>
+        {mistakesToPractice > 0 ? (
+          <ButtonLink
+            to="/practice/session"
+            state={practiceMistakes}
+            variant="secondary"
+            block
+            aria-describedby="practice-mistakes-note"
+          >
+            <span aria-hidden="true">🎯</span> Practice Mistakes
+          </ButtonLink>
+        ) : (
+          <Button variant="secondary" block disabled aria-describedby="practice-mistakes-note">
+            <span aria-hidden="true">🎯</span> Practice Mistakes
+          </Button>
+        )}
         <p id="practice-mistakes-note" className="summary-actions__note">
-          {session.incorrect > 0
-            ? 'Practicing your mistakes is coming soon.'
-            : 'No mistakes this time!'}
+          {mistakesNote}
         </p>
         <div className="summary-actions__row">
           <ButtonLink to="/practice/setup" state={changeSettings} variant="secondary" block>

@@ -1,4 +1,4 @@
-import { useCallback, useReducer } from 'react';
+import { useReducer } from 'react';
 import { generateQuestionForOperations } from '../services/questionGenerator';
 import type { PracticeAttempt, PracticeSession, Question, SessionConfig } from '../types';
 import { createId } from '../utils/ids';
@@ -141,8 +141,13 @@ export function practiceSessionReducer(
 export interface PracticeSessionCallbacks {
   /** Called after each counted answer, with the session's updated totals (for saving). */
   onAttemptRecorded?: (attempt: PracticeAttempt, session: PracticeSession) => void;
-  /** Called when the student ends a continuous session. */
+  /** Called when the session ends early: the student ended it, or no questions are left. */
   onSessionEnded?: (session: PracticeSession) => void;
+  /**
+   * Produce the next question (or null if there are none left, which ends the
+   * session). Defaults to regular questions from the session's operations and level.
+   */
+  generateNextQuestion?: (previous: Question | null) => Question | null;
 }
 
 /**
@@ -151,47 +156,49 @@ export interface PracticeSessionCallbacks {
  */
 export function usePracticeSession(
   config: SessionConfig,
-  { onAttemptRecorded, onSessionEnded }: PracticeSessionCallbacks = {},
+  { onAttemptRecorded, onSessionEnded, generateNextQuestion }: PracticeSessionCallbacks = {},
 ) {
+  const regularQuestion = (previous: Question | null) =>
+    generateQuestionForOperations(config.operations, config.difficulty, { avoid: previous });
+  const nextQuestionFor = generateNextQuestion ?? regularQuestion;
+
   const [state, dispatch] = useReducer(practiceSessionReducer, config, (c) =>
-    createInitialState(
-      c,
-      generateQuestionForOperations(c.operations, c.difficulty),
+    createInitialState(c, nextQuestionFor(null) ?? regularQuestion(null), new Date().toISOString()),
+  );
+
+  const recordResult = (selectedAnswer: number, selfReportedCorrect: boolean) => {
+    if (state.status !== 'active') return;
+    const question = state.currentQuestion;
+    const attempt = createAttempt(
+      question,
+      selectedAnswer,
+      selfReportedCorrect,
+      state.session.id,
       new Date().toISOString(),
-    ),
-  );
+    );
 
-  const recordResult = useCallback(
-    (selectedAnswer: number, selfReportedCorrect: boolean) => {
-      if (state.status !== 'active') return;
-      const question = state.currentQuestion;
-      const attempt = createAttempt(
-        question,
-        selectedAnswer,
-        selfReportedCorrect,
-        state.session.id,
-        new Date().toISOString(),
-      );
-      // Stop generating questions once the session is complete (TODO task 32).
-      const finishes = hasReachedLength({
-        sessionLength: state.session.sessionLength,
-        attempted: state.session.attempted + 1,
-      });
-      const nextQuestion = finishes
-        ? null
-        : generateQuestionForOperations(config.operations, config.difficulty, { avoid: question });
-      const action: PracticeSessionAction = { type: 'recordAttempt', attempt, nextQuestion };
+    // 1. Check the attempt counts, and save it first, so the next question can use
+    //    up-to-date data (for example, a mistake this answer has just mastered).
+    const counted = practiceSessionReducer(state, {
+      type: 'recordAttempt',
+      attempt,
+      nextQuestion: question,
+    });
+    if (counted === state) return;
+    onAttemptRecorded?.(attempt, counted.session);
 
-      // The reducer is pure, so we can compute the result here to know whether it counted.
-      const next = practiceSessionReducer(state, action);
-      if (next === state) return;
-      dispatch(action);
-      onAttemptRecorded?.(attempt, next.session);
-    },
-    [state, config, onAttemptRecorded],
-  );
+    // 2. Stop generating questions once the session is complete (TODO task 32).
+    const finishes = hasReachedLength(counted.session);
+    const nextQuestion = finishes ? null : nextQuestionFor(question);
+    const action: PracticeSessionAction = { type: 'recordAttempt', attempt, nextQuestion };
+    const next = practiceSessionReducer(state, action);
+    dispatch(action);
 
-  const endSession = useCallback(() => {
+    // 3. Ran out of questions early (e.g. every mistake mastered): save the completion.
+    if (!finishes && nextQuestion === null) onSessionEnded?.(next.session);
+  };
+
+  const endSession = () => {
     const action: PracticeSessionAction = {
       type: 'endSession',
       completedAt: new Date().toISOString(),
@@ -200,7 +207,7 @@ export function usePracticeSession(
     if (next === state) return;
     dispatch(action);
     onSessionEnded?.(next.session);
-  }, [state, onSessionEnded]);
+  };
 
   return { state, recordResult, endSession };
 }

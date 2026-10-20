@@ -546,3 +546,9 @@
     text-align: left;
   }
 }
+
+.chip--review {
+  border-color: #e8590c;
+  background: #fff0e6;
+  color: #a8380a;
+}

@@ -525,3 +525,17 @@
 .storage-warning p {
   margin: 0;
 }
+
+.radio-card.is-disabled {
+  border-style: dashed;
+  background: #f7f8fb;
+  cursor: not-allowed;
+}
+
+.radio-card.is-disabled .radio-card__title {
+  color: var(--color-muted);
+}
+
+.radio-card.is-disabled:hover {
+  border-color: var(--color-border);
+}

@@ -362,7 +362,7 @@ Initial routes:
 ### 34. Add Summary Actions
 
 - [x] Add a **Practice Again** button.
-- [x] Add a **Practice Mistakes** button. _(shown disabled until mistake review is built in Phase 14)_
+- [x] Add a **Practice Mistakes** button. _(enabled in Phase 14 when mistakes are available)_
 - [x] Add a **Change Settings** button.
 - [x] Add a **View Statistics** button.
 - [x] Add a **Return Home** button.
@@ -584,42 +584,42 @@ Initial routes:
 
 ### 58. Add Review Mode to Practice Setup
 
-- [ ] Add a regular-practice option.
-- [ ] Add a mistake-review option.
-- [ ] Disable mistake review when no active mistakes exist.
-- [ ] Explain why the option is disabled.
-- [ ] Display the number of active mistake patterns.
+- [x] Add a regular-practice option.
+- [x] Add a mistake-review option.
+- [x] Disable mistake review when no active mistakes exist.
+- [x] Explain why the option is disabled.
+- [x] Display the number of active mistake patterns.
 
 ### 59. Prioritize Mistake Patterns
 
-- [ ] Give higher priority to frequently missed patterns.
-- [ ] Give higher priority to recently missed patterns.
-- [ ] Give higher priority to patterns with little successful review.
-- [ ] Randomize patterns with similar priority.
-- [ ] Test the prioritization logic.
+- [x] Give higher priority to frequently missed patterns.
+- [x] Give higher priority to recently missed patterns.
+- [x] Give higher priority to patterns with little successful review.
+- [x] Randomize patterns with similar priority.
+- [x] Test the prioritization logic.
 
 ### 60. Build Mistake Review Sessions
 
-- [ ] Select active mistake patterns.
-- [ ] Generate similar questions from those patterns.
-- [ ] Mix multiple mistake patterns in one session.
-- [ ] Record which pattern produced each question.
-- [ ] Display mistake-review counts in the session summary.
+- [x] Select active mistake patterns.
+- [x] Generate similar questions from those patterns.
+- [x] Mix multiple mistake patterns in one session.
+- [x] Record which pattern produced each question.
+- [x] Display mistake-review counts in the session summary.
 
 ### 61. Track Similar-Question Success
 
-- [ ] Increment similar-correct count after a correct review answer.
-- [ ] Handle incorrect review answers.
-- [ ] Update the original mistake pattern.
-- [ ] Store the updated pattern locally.
+- [x] Increment similar-correct count after a correct review answer.
+- [x] Handle incorrect review answers.
+- [x] Update the original mistake pattern.
+- [x] Store the updated pattern locally.
 
 ### 62. Implement Mastery Rules
 
-- [ ] Mark a pattern as mastered after three correct similar questions.
-- [ ] Make the mastery threshold configurable.
-- [ ] Exclude mastered patterns from normal review.
-- [ ] Allow mastered patterns to return after a future mistake.
-- [ ] Add tests for mastery transitions.
+- [x] Mark a pattern as mastered after three correct similar questions.
+- [x] Make the mastery threshold configurable.
+- [x] Exclude mastered patterns from normal review.
+- [x] Allow mastered patterns to return after a future mistake.
+- [x] Add tests for mastery transitions.
 
 ---
 

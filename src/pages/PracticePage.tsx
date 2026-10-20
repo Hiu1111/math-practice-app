@@ -12,6 +12,8 @@ import { pickFeedback } from '../utils/feedback';
 import { playResultSound } from '../utils/sound';
 import { DIFFICULTY_INFO, describeOperations } from '../utils/operations';
 import { isValidSessionConfig } from '../utils/validation';
+import { reviewablePatterns } from '../services/mistakeService';
+import { nextReviewQuestion } from '../services/similarQuestionGenerator';
 import type { SetupLocationState } from './PracticeSetupPage';
 
 export interface PracticeLocationState {
@@ -33,7 +35,28 @@ export function PracticePage() {
   }
 
   // A new navigation (e.g. "Practice Again") gets a fresh session via a new key.
-  return <PracticeSessionView key={location.key} config={config} />;
+  return <SessionStart key={location.key} config={config} />;
+}
+
+/**
+ * Checks, once, that the session can start. A mistake-review session needs at
+ * least one mistake to practice. This must not be re-checked during the session:
+ * mastering the last mistake mid-session is a normal ending that should show
+ * the summary, not bounce back to setup.
+ */
+function SessionStart({ config }: { config: SessionConfig }) {
+  const store = useAppStore();
+  const [canStart] = useState(() => {
+    if (config.reviewMode !== 'mistake-review') return true;
+    const { mistakePatterns, settings } = store.getState();
+    return reviewablePatterns(mistakePatterns, config, settings.masteryThreshold).length > 0;
+  });
+
+  if (!canStart) {
+    const state: SetupLocationState = { notice: 'no-mistakes', config };
+    return <Navigate to="/practice/setup" replace state={state} />;
+  }
+  return <PracticeSessionView config={config} />;
 }
 
 function PracticeSessionView({ config }: { config: SessionConfig }) {
@@ -44,6 +67,15 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
     // Every counted answer is saved right away (spec 6.3), with the session's totals.
     onAttemptRecorded: store.recordAttempt,
     onSessionEnded: store.saveSession,
+    // Review sessions read the latest saved mistakes each time, so a mistake mastered
+    // by the last answer is not asked again.
+    generateNextQuestion:
+      config.reviewMode === 'mistake-review'
+        ? (previous) => {
+            const { mistakePatterns, settings: current } = store.getState();
+            return nextReviewQuestion(mistakePatterns, config, current.masteryThreshold, previous);
+          }
+        : undefined,
   });
   const { session, currentQuestion, currentQuestionIndex, status } = state;
   const [feedback, setFeedback] = useState('');
@@ -130,6 +162,11 @@ function SessionHeader({ session, total }: { session: PracticeSession; total: nu
   return (
     <div className="session-header">
       <ul className="config-chips" aria-label="Session settings">
+        {session.reviewMode === 'mistake-review' && (
+          <li className="chip chip--review">
+            <span aria-hidden="true">🎯 </span>Mistake practice
+          </li>
+        )}
         <li className="chip">{describeOperations(session.operations)}</li>
         <li className="chip">
           Level {session.difficulty} · {DIFFICULTY_INFO[session.difficulty].name}

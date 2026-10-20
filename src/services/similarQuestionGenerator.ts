@@ -1,7 +1,8 @@
-import type { MathOperation, MistakePattern, Question } from '../types';
+import type { DifficultyLevel, MathOperation, MistakePattern, Question } from '../types';
 import { randomChoice, type RandomFn } from '../utils/math';
 import { shuffle } from '../utils/shuffle';
 import { operandsMatchDifficulty } from './difficultyRules';
+import { pickReviewPattern, reviewablePatterns } from './mistakeService';
 import { buildQuestion, isSameQuestion, questionProblems } from './questionGenerator';
 
 /** The similarity rules from spec 6.4 (TODO tasks 54–56). */
@@ -166,4 +167,27 @@ export function generateSimilarQuestion(
     }
   }
   return build(pattern);
+}
+
+/**
+ * The next question in a mistake-review session (spec 20.2 and TODO task 60):
+ * pick a mistake that matches the session's operations and level by review
+ * priority (taking turns with other mistakes), then make a similar question
+ * for it. Returns null when nothing is left to review (e.g. all mastered).
+ */
+export function nextReviewQuestion(
+  patterns: readonly MistakePattern[],
+  choices: { operations: readonly MathOperation[]; difficulty: DifficultyLevel },
+  masteryThreshold: number,
+  previous: Question | null,
+  { rng = Math.random, now = new Date() }: { rng?: RandomFn; now?: Date } = {},
+): Question | null {
+  const pool = reviewablePatterns(patterns, choices, masteryThreshold);
+  const pattern = pickReviewPattern(pool, {
+    previousPatternId: previous?.mistakePatternId,
+    masteryThreshold,
+    now,
+    rng,
+  });
+  return pattern ? generateSimilarQuestion(pattern, { rng, avoid: previous }) : null;
 }
