@@ -1,12 +1,15 @@
 import { makeAttempt, makeSession } from '../test/fixtures';
-import { emptyAppStatistics } from '../types';
+import { emptyAppStatistics, type MistakePattern } from '../types';
 import { summaryMessage } from '../utils/feedback';
 import { isCompletedSession } from '../utils/validation';
 import {
   applyAttempt,
   calculateAccuracy,
+  computeMistakeStatistics,
   computeStatistics,
+  mostMissedOperations,
   recentSessions,
+  sortByMostMissed,
 } from './statisticsService';
 
 describe('calculateAccuracy', () => {
@@ -110,5 +113,77 @@ describe('isCompletedSession', () => {
     ['bad operations', { ...session, operations: [] }],
   ])('rejects %s', (_label, value) => {
     expect(isCompletedSession(value)).toBe(false);
+  });
+});
+
+describe('mistake statistics (tasks 63–64)', () => {
+  const pattern = (overrides: Partial<MistakePattern>): MistakePattern => ({
+    id: Math.random().toString(36),
+    operation: 'multiplication',
+    firstOperand: 8,
+    secondOperand: 7,
+    correctAnswer: 56,
+    difficulty: 2,
+    incorrectCount: 1,
+    similarCorrectCount: 0,
+    firstIncorrectAt: '2026-10-19T10:00:00.000Z',
+    lastIncorrectAt: '2026-10-19T10:00:00.000Z',
+    mastered: false,
+    ...overrides,
+  });
+
+  it('counts active and mastered mistakes and similar questions', () => {
+    const stats = emptyAppStatistics();
+    stats.review = { attempted: 7, correct: 5, incorrect: 2 };
+    const result = computeMistakeStatistics(
+      [pattern({}), pattern({ mastered: true }), pattern({ similarCorrectCount: 3 })],
+      stats,
+      3,
+    );
+    expect(result).toMatchObject({
+      activePatterns: 1,
+      masteredPatterns: 2,
+      similarQuestionsPracticed: 7,
+      similarQuestionsCorrect: 5,
+    });
+  });
+
+  it('finds the most missed operation, and every operation when tied', () => {
+    expect(
+      mostMissedOperations([
+        pattern({ operation: 'division', incorrectCount: 2 }),
+        pattern({ operation: 'addition', incorrectCount: 1 }),
+        pattern({ operation: 'addition', incorrectCount: 2 }),
+      ]),
+    ).toEqual(['addition']);
+    expect(
+      mostMissedOperations([
+        pattern({ operation: 'division', incorrectCount: 2 }),
+        pattern({ operation: 'subtraction', incorrectCount: 2 }),
+      ]),
+    ).toEqual(['subtraction', 'division']);
+    expect(mostMissedOperations([])).toEqual([]);
+  });
+
+  it('sorts facts by misses, breaking ties by the most recent miss', () => {
+    const old = pattern({ id: 'old', incorrectCount: 2, lastIncorrectAt: '2026-10-01T00:00:00Z' });
+    const recent = pattern({
+      id: 'recent',
+      incorrectCount: 2,
+      lastIncorrectAt: '2026-10-20T00:00:00Z',
+    });
+    const most = pattern({ id: 'most', incorrectCount: 5 });
+    expect(sortByMostMissed([old, recent, most]).map((p) => p.id)).toEqual([
+      'most',
+      'recent',
+      'old',
+    ]);
+  });
+
+  it('limits the most-missed facts list', () => {
+    const many = Array.from({ length: 9 }, (_, i) => pattern({ incorrectCount: i + 1 }));
+    const result = computeMistakeStatistics(many, emptyAppStatistics(), 3);
+    expect(result.mostMissedFacts).toHaveLength(5);
+    expect(result.mostMissedFacts[0].incorrectCount).toBe(9);
   });
 });

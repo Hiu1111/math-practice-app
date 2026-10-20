@@ -174,3 +174,118 @@ describe('reset statistics', () => {
     expect(screen.getByText(/no practice yet/i)).toBeInTheDocument();
   });
 });
+
+describe('mistake statistics on the statistics page (tasks 63–65)', () => {
+  function seedMistakes() {
+    const store = createAppStore();
+    const session = makeSession({ attempted: 6, correct: 0, incorrect: 6 });
+    const miss = (
+      operation: PracticeAttempt['operation'],
+      a: number,
+      b: number,
+      answer: number,
+      at: string,
+    ) =>
+      store.recordAttempt(
+        makeAttempt({
+          operation,
+          firstOperand: a,
+          secondOperand: b,
+          correctAnswer: answer,
+          selfReportedCorrect: false,
+          difficulty: 2,
+          sessionId: session.id,
+          attemptedAt: at,
+        }),
+        session,
+      );
+    miss('multiplication', 8, 7, 56, '2026-10-18T10:00:00.000Z');
+    miss('multiplication', 8, 7, 56, '2026-10-19T10:00:00.000Z');
+    miss('multiplication', 8, 7, 56, '2026-10-20T10:00:00.000Z');
+    miss('division', 54, 6, 9, '2026-10-20T11:00:00.000Z');
+    miss('division', 54, 6, 9, '2026-10-20T12:00:00.000Z');
+    miss('addition', 27, 15, 42, '2026-10-20T13:00:00.000Z');
+    // Master the addition mistake with three correct review answers.
+    const addition = store.getState().mistakePatterns.find((p) => p.operation === 'addition')!;
+    for (let i = 0; i < 3; i++) {
+      store.recordAttempt(
+        makeAttempt({
+          source: 'mistake-review',
+          mistakePatternId: addition.id,
+          sessionId: session.id,
+        }),
+        session,
+      );
+    }
+    // One correct review answer for 8 × 7.
+    const times = store.getState().mistakePatterns.find((p) => p.firstOperand === 8)!;
+    store.recordAttempt(
+      makeAttempt({ source: 'mistake-review', mistakePatternId: times.id, sessionId: session.id }),
+      session,
+    );
+  }
+
+  it('shows active and mastered counts and similar questions practiced', () => {
+    seedMistakes();
+    renderApp('/statistics');
+    const tiles = screen.getByLabelText('Mistake results');
+    expect(tileValue(tiles, /to practice/i)).toBe('2');
+    expect(tileValue(tiles, /^mastered$/i)).toBe('1');
+    expect(tileValue(tiles, /similar questions practiced/i)).toBe('4');
+    expect(tileValue(tiles, /similar questions correct/i)).toBe('4');
+  });
+
+  it('shows the most missed operation and the most missed facts in order', () => {
+    seedMistakes();
+    renderApp('/statistics');
+    expect(screen.getByText(/most missed math/i).parentElement).toHaveTextContent(
+      'Most missed math: Multiplication',
+    );
+    const facts = within(screen.getByRole('list', { name: /most missed facts/i })).getAllByRole(
+      'listitem',
+    );
+    expect(facts.map((li) => li.textContent)).toEqual([
+      '8 × 7 = 56missed 3 times',
+      '54 ÷ 6 = 9missed 2 times',
+      '27 + 15 = 42missed 1 time',
+    ]);
+  });
+
+  it('lists mistakes still being practiced with their progress, and mastered ones separately', async () => {
+    seedMistakes();
+    const { user } = renderApp('/statistics');
+    const active = within(screen.getByRole('list', { name: /mistakes to practice/i })).getAllByRole(
+      'listitem',
+    );
+    expect(active).toHaveLength(2);
+    expect(active[0]).toHaveTextContent(
+      /8 × 7 = 56.*missed 3 times, last on Oct 20.*1 of 3 correct to master/,
+    );
+    expect(active[1]).toHaveTextContent(/54 ÷ 6 = 9.*0 of 3 correct to master/);
+
+    // Mastered mistakes are tucked away until opened.
+    const toggle = screen.getByText(/mastered mistakes \(1\)/i);
+    expect(
+      screen.getByRole('list', { name: /mastered mistakes/i, hidden: true }),
+    ).not.toBeVisible();
+    await user.click(toggle);
+    expect(screen.getByRole('list', { name: /mastered mistakes/i })).toHaveTextContent(
+      '27 + 15 = 42',
+    );
+  });
+
+  it('shows an empty state when there are no mistakes', () => {
+    seed([{ attempt: {}, session: makeSession() }]);
+    renderApp('/statistics');
+    expect(screen.getByText(/no mistakes yet/i)).toBeInTheDocument();
+  });
+
+  it('Reset Statistics also clears saved mistakes', async () => {
+    seedMistakes();
+    const { user } = renderApp('/statistics');
+    await user.click(screen.getByRole('button', { name: /reset statistics/i }));
+    await user.click(screen.getByRole('button', { name: /yes, erase it/i }));
+    expect(localStorage.getItem(STORAGE_KEYS.mistakePatterns)).toBeNull();
+    expect(createAppStore().getState().mistakePatterns).toEqual([]);
+  });
+});

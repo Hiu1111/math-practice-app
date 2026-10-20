@@ -266,3 +266,113 @@
 .stats-section .stat-tile {
   text-align: center;
 }
+
+/* Mistake practice */
+.mistake-highlight {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: #fff0e6;
+  color: #7a2a07;
+}
+
+.mistake-columns {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.mistake-subtitle {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.fact-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ol.fact-list {
+  counter-reset: fact;
+}
+
+ol.fact-list > li {
+  counter-increment: fact;
+}
+
+ol.fact-list > li::before {
+  content: counter(fact);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-sun-soft);
+  font-weight: 900;
+  color: var(--color-sun-strong);
+}
+
+.fact-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.fact-list__item--detail {
+  display: grid;
+}
+
+.fact-list__fact {
+  font-family: var(--font-math);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.fact-list__meta {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.fact-list__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.fact-list__progress .meter {
+  --tone: var(--color-success);
+  flex: 1;
+  max-width: 160px;
+}
+
+.fact-list__progress .meter__fill {
+  display: block;
+}
+
+.mastered-list {
+  margin-top: 20px;
+}
+
+.mastered-list summary {
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 800;
+  color: var(--color-primary-strong);
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .mistake-columns {
+    grid-template-columns: 1fr;
+  }
+}

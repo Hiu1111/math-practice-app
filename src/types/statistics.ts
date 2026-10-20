@@ -1,3 +1,4 @@
+import type { MistakePattern } from './mistake';
 import type { DifficultyLevel, MathOperation } from './question';
 
 /** Attempted / correct / incorrect counts for one slice of the data (spec §10.4). */
@@ -21,13 +22,16 @@ export interface AppStatistics {
   review: OperationStatistics;
 }
 
-/** Mistake-review figures shown on the statistics page (spec §6.6). */
+/** Mistake-review figures shown on the statistics page (spec 6.6, TODO tasks 63–64). */
 export interface MistakeStatistics {
   activePatterns: number;
   masteredPatterns: number;
   similarQuestionsPracticed: number;
   similarQuestionsCorrect: number;
-  mostMissedOperation: MathOperation | null;
+  /** The operation(s) with the most misses; several when tied, empty when no mistakes. */
+  mostMissedOperations: MathOperation[];
+  /** Most-missed facts first; ties go to the most recently missed. */
+  mostMissedFacts: MistakePattern[];
 }
 
 export function emptyOperationStatistics(): OperationStatistics {

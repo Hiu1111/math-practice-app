@@ -4,6 +4,7 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { EmptyState } from '../components/common/EmptyState';
 import { PageContainer } from '../components/layout/PageContainer';
 import { DifficultyStatistics } from '../components/statistics/DifficultyStatistics';
+import { MistakeStatistics } from '../components/statistics/MistakeStatistics';
 import { OperationStatistics } from '../components/statistics/OperationStatistics';
 import { RecentSessions } from '../components/statistics/RecentSessions';
 import { StatisticsOverview } from '../components/statistics/StatisticsOverview';
@@ -15,11 +16,11 @@ export const RESET_CONFIRMATION =
 
 export function StatisticsPage() {
   const store = useAppStore();
-  const { statistics, sessions } = useAppData();
+  const { statistics, sessions, mistakePatterns, settings } = useAppData();
   const [confirming, setConfirming] = useState(false);
   const [justReset, setJustReset] = useState(false);
 
-  const hasData = statistics.attempted > 0 || sessions.length > 0;
+  const hasData = statistics.attempted > 0 || sessions.length > 0 || mistakePatterns.length > 0;
 
   if (!hasData) {
     return (
@@ -46,13 +47,21 @@ export function StatisticsPage() {
         <StatisticsOverview totals={statistics} />
         <OperationStatistics statistics={statistics} />
         <DifficultyStatistics statistics={statistics} />
+        <MistakeStatistics
+          patterns={mistakePatterns}
+          statistics={statistics}
+          masteryThreshold={settings.masteryThreshold}
+        />
         <RecentSessions sessions={sessions} />
 
         <section className="stats-reset" aria-labelledby="stats-reset-title">
           <h2 id="stats-reset-title" className="visually-hidden">
             Reset
           </h2>
-          <p>Starting over? This erases your practice history and statistics. Settings are kept.</p>
+          <p>
+            Starting over? This erases your practice history, statistics and saved mistakes.
+            Settings are kept.
+          </p>
           <Button variant="danger" onClick={() => setConfirming(true)}>
             Reset Statistics
           </Button>

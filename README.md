@@ -72,6 +72,31 @@ Up to two of the wrong answers come from common mistakes:
 The remaining wrong answers are nearby numbers. Choices are shuffled, so the correct answer can
 appear in any position.
 
+## Mistakes, review and mastery
+
+The rules live in `src/services/mistakeService.ts` and `src/services/similarQuestionGenerator.ts`.
+
+- **Recording.** A question marked "I Got It Wrong" in regular practice is saved as a mistake
+  (operation, numbers, answer, level, times missed, first/last miss). Missing the same fact again
+  updates that record instead of adding a new one.
+- **Similar questions** come from three strategies, and every one must fit the mistake's level:
+  - nearby numbers (8 × 7 → 8 × 6, 9 × 7)
+  - reversed operands for + and × only (8 × 7 → 7 × 8)
+  - the fact family (8 × 7 → 56 ÷ 7, 56 ÷ 8)
+
+  The original question is never shown again unless nothing else fits.
+
+- **Review sessions** use the mistakes that match the chosen operations and level. Mistakes missed
+  more often, more recently, or with less review progress come first. The top few take turns.
+- **Mastery.** A mistake is mastered after 3 correct similar answers. You can change this number
+  in Settings.
+  - A wrong review answer moves progress back one step.
+  - Missing the fact again in regular practice resets its progress, and brings it back if it was
+    mastered.
+  - A review session ends early, with a summary, once every matching mistake is mastered.
+- **Storage.** Data is saved under the six `mathPractice.*` keys from the spec. Schema version 2
+  added review totals to the statistics; older data is migrated automatically.
+
 ## Reference documents
 
 - `specification.md` — application requirements
