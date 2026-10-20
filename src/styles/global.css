@@ -1,0 +1,27 @@
+/* Global base styles. Full child-friendly theme is added in Phase 2. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #1f2a44;
+  background: #f4f8ff;
+}
+
+.app-placeholder {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  text-align: center;
+}
