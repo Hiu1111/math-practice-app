@@ -1,0 +1,268 @@
+/* ------------------------------------------------------------------
+   Statistics page
+   ------------------------------------------------------------------ */
+.stats-layout {
+  display: grid;
+  gap: 20px;
+}
+
+.stats-section__title {
+  margin: 0 0 16px;
+  font-size: 1.4rem;
+}
+
+.stats-section__empty {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.stats-section .stat-grid {
+  margin-bottom: 0;
+}
+
+/* Cards for operations and levels */
+.stat-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  --tone: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid var(--color-border);
+  border-top: 6px solid var(--tone);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.stat-card--addition {
+  --tone: var(--op-addition);
+}
+
+.stat-card--subtraction {
+  --tone: var(--op-subtraction);
+}
+
+.stat-card--multiplication {
+  --tone: var(--op-multiplication);
+}
+
+.stat-card--division {
+  --tone: var(--op-division);
+}
+
+.stat-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-card__badge {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--tone);
+  font-family: var(--font-math);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+.stat-card--level .stat-card__badge {
+  background: var(--color-sun-soft);
+  font-size: 0.85rem;
+  color: var(--color-sun-strong);
+}
+
+.stat-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.stat-card__accuracy {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.stat-card__percent {
+  font-family: var(--font-math);
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.stat-card__empty {
+  margin: 4px 0 0;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.meter {
+  height: 10px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: #e3e9f7;
+}
+
+.meter__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--tone);
+}
+
+.stat-card__totals {
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 0;
+}
+
+.stat-card__totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.stat-card__totals dt {
+  color: var(--color-muted);
+}
+
+.stat-card__totals dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+/* Recent sessions table */
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+
+.sessions-table th,
+.sessions-table td {
+  padding: 10px 8px;
+  border-bottom: 2px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sessions-table thead th {
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.sessions-table tbody th {
+  font-weight: 800;
+}
+
+.sessions-table td:nth-child(n + 4) {
+  font-variant-numeric: tabular-nums;
+}
+
+.sessions-table__tag {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #a8380a;
+}
+
+/* Reset */
+.stats-reset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.stats-reset p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.dialog__small {
+  margin-top: 8px !important;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .stat-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Small screens: each session row becomes a stacked card (spec section 15). */
+@media (max-width: 680px) {
+  .sessions-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .sessions-table tr {
+    display: block;
+    margin-bottom: 12px;
+    padding: 8px 14px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .sessions-table th,
+  .sessions-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid #edf1fa;
+    text-align: right;
+  }
+
+  .sessions-table tr > :last-child {
+    border-bottom: 0;
+  }
+
+  .sessions-table th::before,
+  .sessions-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    text-align: left;
+    color: var(--color-muted);
+  }
+
+  .sessions-table tbody th {
+    flex-wrap: wrap;
+  }
+
+  .sessions-table__tag {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .stat-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Match the session summary tiles. */
+.stats-section .stat-tile {
+  text-align: center;
+}

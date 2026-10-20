@@ -72,6 +72,16 @@ export function formatNumber(n: number): string {
   return n.toLocaleString('en-US');
 }
 
+/** "Oct 20, 3:45 PM" in the student's own time zone. */
+export function formatSessionDate(iso: string): string {
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export function isMathOperation(value: unknown): value is MathOperation {
   return typeof value === 'string' && (MATH_OPERATIONS as readonly string[]).includes(value);
 }
