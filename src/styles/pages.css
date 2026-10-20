@@ -145,3 +145,311 @@
   font-weight: 700;
   text-align: center;
 }
+
+/* ------------------------------------------------------------------
+   Practice setup
+   ------------------------------------------------------------------ */
+.setup-form {
+  display: grid;
+  gap: 24px;
+}
+
+.selector {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+}
+
+.selector__legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.selector__legend + * {
+  clear: both;
+}
+
+.step-badge {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-sun);
+  font-weight: 900;
+}
+
+.selector__hint {
+  margin: 4px 0 16px;
+  color: var(--color-muted);
+}
+
+.selector__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* Operation toggles */
+.op-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.op-toggle {
+  --op-color: var(--color-primary);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 128px;
+  padding: 18px 8px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font: inherit;
+  font-weight: 800;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.08s ease;
+}
+
+.op-toggle--addition {
+  --op-color: var(--op-addition);
+}
+
+.op-toggle--subtraction {
+  --op-color: var(--op-subtraction);
+}
+
+.op-toggle--multiplication {
+  --op-color: var(--op-multiplication);
+}
+
+.op-toggle--division {
+  --op-color: var(--op-division);
+}
+
+.op-toggle:hover {
+  border-color: var(--op-color);
+}
+
+.op-toggle:active {
+  transform: translateY(2px);
+}
+
+.op-toggle__symbol {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--op-color) 12%, white);
+  font-family: var(--font-math);
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: var(--op-color);
+}
+
+.op-toggle.is-selected {
+  border-color: var(--op-color);
+  background: color-mix(in srgb, var(--op-color) 9%, white);
+  box-shadow: 0 4px 0 var(--op-color);
+}
+
+.op-toggle.is-selected .op-toggle__symbol {
+  background: var(--op-color);
+  color: #fff;
+}
+
+.op-toggle__check,
+.radio-card__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #fff;
+  opacity: 0;
+}
+
+.op-toggle__check {
+  background: var(--op-color);
+}
+
+.op-toggle.is-selected .op-toggle__check,
+.radio-card.is-selected .radio-card__check {
+  opacity: 1;
+}
+
+/* Radio cards */
+.radio-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.radio-grid--levels {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.radio-grid--lengths {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.radio-card {
+  position: relative;
+  display: flex;
+  padding: 16px 40px 16px 16px;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.radio-card:hover {
+  border-color: var(--color-primary);
+}
+
+.radio-card:has(input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.radio-card.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: 0 4px 0 var(--color-primary);
+}
+
+.radio-card__check {
+  background: var(--color-primary);
+}
+
+.radio-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.radio-card__badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary-strong);
+}
+
+.radio-card__badge [aria-hidden='true'] {
+  color: var(--color-sun-strong);
+  letter-spacing: 0;
+}
+
+.radio-card__title {
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.radio-card__desc {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.radio-card--center {
+  justify-content: center;
+  padding: 14px 28px;
+  text-align: center;
+}
+
+.radio-card--center .radio-card__body {
+  align-items: center;
+  gap: 0;
+}
+
+.radio-card--center .radio-card__title {
+  font-family: var(--font-math);
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.radio-card--center .radio-card__desc {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.setup-form__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-message {
+  margin: 0;
+  font-weight: 800;
+  color: var(--color-danger);
+}
+
+@media (max-width: 720px) {
+  .op-grid,
+  .radio-grid--lengths {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .radio-grid--levels {
+    grid-template-columns: 1fr;
+  }
+
+  .op-toggle {
+    min-height: 112px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Practice session
+   ------------------------------------------------------------------ */
+.config-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 6px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.preview-card {
+  text-align: center;
+}

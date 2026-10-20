@@ -16,6 +16,9 @@ export const MATH_OPERATIONS: readonly MathOperation[] = [
 
 export const DIFFICULTY_LEVELS: readonly DifficultyLevel[] = [1, 2, 3, 4] as const;
 
+/** Every question shows exactly this many answer choices (spec §8.2). */
+export const CHOICE_COUNT = 4;
+
 export interface Question {
   id: string;
   operation: MathOperation;
