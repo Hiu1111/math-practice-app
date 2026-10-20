@@ -1,4 +1,10 @@
-import { CHOICE_COUNT, SESSION_LENGTHS, type Question, type SessionConfig } from '../types';
+import {
+  CHOICE_COUNT,
+  SESSION_LENGTHS,
+  type PracticeSession,
+  type Question,
+  type SessionConfig,
+} from '../types';
 import { computeAnswer, isDifficultyLevel, isMathOperation } from './operations';
 
 export interface ValidateQuestionOptions {
@@ -67,5 +73,30 @@ export function isValidSessionConfig(value: unknown): value is SessionConfig {
     isDifficultyLevel(config.difficulty) &&
     (SESSION_LENGTHS as readonly unknown[]).includes(config.sessionLength) &&
     (config.reviewMode === 'regular' || config.reviewMode === 'mistake-review')
+  );
+}
+
+const isCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0;
+
+/** Runtime check for a finished session passed to the summary page. */
+export function isCompletedSession(value: unknown): value is PracticeSession {
+  if (typeof value !== 'object' || value === null) return false;
+  const s = value as Record<string, unknown>;
+  return (
+    typeof s.id === 'string' &&
+    typeof s.startedAt === 'string' &&
+    typeof s.completedAt === 'string' &&
+    isValidSessionConfig({
+      operations: s.operations,
+      difficulty: s.difficulty,
+      sessionLength: s.sessionLength,
+      reviewMode: s.reviewMode,
+    }) &&
+    isCount(s.attempted) &&
+    isCount(s.correct) &&
+    isCount(s.incorrect) &&
+    isCount(s.reviewQuestionsCompleted) &&
+    s.correct + s.incorrect === s.attempted
   );
 }

@@ -15,3 +15,16 @@ export function pickFeedback(correct: boolean, previous?: string, rng: RandomFn 
   const fresh = options.filter((message) => message !== previous);
   return randomChoice(fresh.length > 0 ? fresh : options, rng);
 }
+
+export interface SummaryMessage {
+  emoji: string;
+  text: string;
+}
+
+/** A headline for the session summary. Every level of score gets encouragement. */
+export function summaryMessage(accuracy: number): SummaryMessage {
+  if (accuracy === 100) return { emoji: '🏆', text: 'Perfect score! Amazing work!' };
+  if (accuracy >= 80) return { emoji: '🌟', text: 'Great job!' };
+  if (accuracy >= 50) return { emoji: '👍', text: 'Nice work! Keep it up!' };
+  return { emoji: '💪', text: 'Keep practicing. You are improving!' };
+}

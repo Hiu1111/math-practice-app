@@ -344,28 +344,28 @@ Initial routes:
 
 ### 32. Detect Session Completion
 
-- [ ] Compare attempted questions with the selected session length.
-- [ ] Stop generating questions when the session is complete.
-- [ ] Save the completion timestamp.
-- [ ] Navigate to the summary page.
+- [x] Compare attempted questions with the selected session length.
+- [x] Stop generating questions when the session is complete.
+- [x] Save the completion timestamp.
+- [x] Navigate to the summary page.
 
 ### 33. Create the Session Summary Page
 
-- [ ] Display total questions attempted.
-- [ ] Display correct answers.
-- [ ] Display incorrect answers.
-- [ ] Calculate and display accuracy.
-- [ ] Display practiced operations.
-- [ ] Display the difficulty level.
-- [ ] Display mistake-review question count.
+- [x] Display total questions attempted.
+- [x] Display correct answers.
+- [x] Display incorrect answers.
+- [x] Calculate and display accuracy.
+- [x] Display practiced operations.
+- [x] Display the difficulty level.
+- [x] Display mistake-review question count.
 
 ### 34. Add Summary Actions
 
-- [ ] Add a **Practice Again** button.
-- [ ] Add a **Practice Mistakes** button.
-- [ ] Add a **Change Settings** button.
-- [ ] Add a **View Statistics** button.
-- [ ] Add a **Return Home** button.
+- [x] Add a **Practice Again** button.
+- [x] Add a **Practice Mistakes** button. _(shown disabled until mistake review is built in Phase 14)_
+- [x] Add a **Change Settings** button.
+- [x] Add a **View Statistics** button.
+- [x] Add a **Return Home** button.
 
 ---
 
@@ -955,6 +955,6 @@ For the fastest path to a working demonstration, implement these tasks first:
 12. [x] Add multiplication.
 13. [x] Add division.
 14. [x] Add practice-session totals.
-15. [ ] Add the session summary.
+15. [x] Add the session summary.
 
 This produces a usable prototype before adding routing, persistence, advanced statistics, and personalized mistake review.
