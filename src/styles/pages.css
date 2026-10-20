@@ -1,0 +1,147 @@
+/* ------------------------------------------------------------------
+   Home page
+   ------------------------------------------------------------------ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 44px 28px 36px;
+  text-align: center;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--op-addition) 0 25%,
+    var(--op-subtraction) 25% 50%,
+    var(--op-multiplication) 50% 75%,
+    var(--op-division) 75% 100%
+  );
+}
+
+.hero__symbols {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sym {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  font-family: var(--font-math);
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: #fff;
+  transform: rotate(var(--tilt, 0deg));
+}
+
+.sym--addition {
+  background: var(--op-addition);
+  --tilt: -7deg;
+}
+
+.sym--subtraction {
+  background: var(--op-subtraction);
+  --tilt: 5deg;
+}
+
+.sym--multiplication {
+  background: var(--op-multiplication);
+  --tilt: -4deg;
+}
+
+.sym--division {
+  background: var(--op-division);
+  --tilt: 7deg;
+}
+
+.hero__title {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 5vw + 1rem, 3rem);
+  color: var(--color-primary-strong);
+}
+
+.hero__text {
+  max-width: 32ch;
+  margin: 0 auto 28px;
+  font-size: 1.2rem;
+  color: var(--color-muted);
+}
+
+.hero__actions {
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.hero__secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.hero__secondary .btn {
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .hero__secondary {
+    grid-template-columns: 1fr;
+  }
+
+  .sym {
+    width: 48px;
+    height: 48px;
+    font-size: 1.7rem;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Empty state
+   ------------------------------------------------------------------ */
+.empty-state {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.empty-state__icon {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.empty-state__title {
+  margin: 12px 0 8px;
+  font-size: 1.6rem;
+}
+
+.empty-state__text {
+  max-width: 40ch;
+  margin: 0 auto 20px;
+  color: var(--color-muted);
+}
+
+.empty-state__text p {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------
+   Notices
+   ------------------------------------------------------------------ */
+.notice {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 2px solid #fab005;
+  border-radius: var(--radius-md);
+  background: var(--color-sun-soft);
+  font-weight: 700;
+  text-align: center;
+}
