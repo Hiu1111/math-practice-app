@@ -7,6 +7,8 @@ interface PageContainerProps {
   /** Text for the browser tab; defaults to the title. */
   documentTitle?: string;
   width?: 'narrow' | 'normal' | 'wide';
+  /** Keep the h1 for screen readers but hide it visually (e.g. on the busy practice screen). */
+  hideTitle?: boolean;
   children?: ReactNode;
 }
 
@@ -18,6 +20,7 @@ export function PageContainer({
   subtitle,
   documentTitle,
   width = 'normal',
+  hideTitle = false,
   children,
 }: PageContainerProps) {
   const tabTitle = documentTitle ?? title;
@@ -29,7 +32,7 @@ export function PageContainer({
   return (
     <div className={`page page--${width}`}>
       {title && (
-        <header className="page__header">
+        <header className={hideTitle ? 'visually-hidden' : 'page__header'}>
           <h1 className="page__title">{title}</h1>
           {subtitle && <p className="page__subtitle">{subtitle}</p>}
         </header>

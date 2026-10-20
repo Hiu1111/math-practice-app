@@ -87,7 +87,10 @@ describe('practice setup page', () => {
     const settings = screen.getByRole('list', { name: /session settings/i });
     expect(within(settings).getByText(/addition and multiplication/i)).toBeInTheDocument();
     expect(within(settings).getByText(/level 3 · intermediate/i)).toBeInTheDocument();
-    expect(within(settings).getByText(/5 questions/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: /session progress/i })).toHaveAttribute(
+      'aria-valuemax',
+      '5',
+    );
   });
 
   it('sends visitors without a session back to setup with a friendly notice', () => {

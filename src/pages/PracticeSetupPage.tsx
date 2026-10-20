@@ -12,22 +12,29 @@ import {
   type SessionConfig,
   type SessionLength,
 } from '../types';
+import { isValidSessionConfig } from '../utils/validation';
 
 export interface SetupLocationState {
   notice?: 'missing-session';
+  /** Previous choices to start from (e.g. after "Change Settings"). */
+  config?: SessionConfig;
 }
 
 export function PracticeSetupPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const notice = (location.state as SetupLocationState | null)?.notice;
+  const locationState = location.state as SetupLocationState | null;
+  const notice = locationState?.notice;
+  const previous = isValidSessionConfig(locationState?.config) ? locationState.config : null;
 
   const [operations, setOperations] = useState<MathOperation[]>(() => [
-    ...DEFAULT_SETTINGS.defaultOperations,
+    ...(previous?.operations ?? DEFAULT_SETTINGS.defaultOperations),
   ]);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>(DEFAULT_SETTINGS.defaultDifficulty);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(
+    previous?.difficulty ?? DEFAULT_SETTINGS.defaultDifficulty,
+  );
   const [sessionLength, setSessionLength] = useState<SessionLength>(
-    DEFAULT_SETTINGS.defaultSessionLength,
+    previous?.sessionLength ?? DEFAULT_SETTINGS.defaultSessionLength,
   );
 
   const canStart = operations.length > 0;

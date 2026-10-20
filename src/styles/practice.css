@@ -284,3 +284,123 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ------------------------------------------------------------------
+   Practice session
+   ------------------------------------------------------------------ */
+.session-header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.session-header .config-chips {
+  margin: 0;
+}
+
+.session-header__continuous {
+  margin: 0;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.progress {
+  height: 18px;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #e3e9f7;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--color-primary), #5c7cfa);
+  transition: width 0.3s ease;
+}
+
+.tally {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tally__item {
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.tally__item--right {
+  background: var(--color-success-soft);
+  color: var(--color-success-strong);
+}
+
+.tally__item--wrong {
+  background: #fff0e6;
+  color: #a8380a;
+}
+
+.feedback {
+  min-height: 1.7em;
+  margin: 4px 0 8px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-align: center;
+  color: var(--color-primary-strong);
+}
+
+.session-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* ------------------------------------------------------------------
+   Confirmation dialog
+   ------------------------------------------------------------------ */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(31, 42, 68, 0.45);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 20px 60px rgba(31, 42, 68, 0.3);
+  text-align: center;
+}
+
+.dialog__title {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+}
+
+.dialog__message {
+  margin-bottom: 20px;
+  color: var(--color-muted);
+}
+
+.dialog__message p {
+  margin: 0;
+}
+
+.dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}

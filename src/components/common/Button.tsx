@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 
 type Variant = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost';
@@ -20,7 +20,7 @@ function buttonClasses(
     .join(' ');
 }
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & StyleProps;
+export type ButtonProps = ComponentPropsWithRef<'button'> & StyleProps;
 
 /** A large, child-friendly button with consistent styling. */
 export function Button({ variant, size, block, className, type = 'button', ...rest }: ButtonProps) {
