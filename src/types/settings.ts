@@ -15,6 +15,10 @@ export interface AppSettings {
   masteryThreshold: number;
 }
 
+/** Allowed range for the mastery threshold setting. */
+export const MIN_MASTERY_THRESHOLD = 1;
+export const MAX_MASTERY_THRESHOLD = 10;
+
 export const DEFAULT_SETTINGS: AppSettings = {
   soundEffects: false,
   cardAnimation: true,

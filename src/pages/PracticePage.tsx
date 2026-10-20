@@ -6,7 +6,8 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { ProgressBar } from '../components/practice/ProgressBar';
 import { QuestionCard } from '../components/practice/QuestionCard';
 import { sessionTotal, usePracticeSession } from '../hooks/usePracticeSession';
-import { DEFAULT_SETTINGS, type PracticeSession, type SessionConfig } from '../types';
+import { useAppData, useAppStore } from '../hooks/useAppData';
+import type { PracticeSession, SessionConfig } from '../types';
 import { pickFeedback } from '../utils/feedback';
 import { DIFFICULTY_INFO, describeOperations } from '../utils/operations';
 import { isValidSessionConfig } from '../utils/validation';
@@ -36,14 +37,19 @@ export function PracticePage() {
 
 function PracticeSessionView({ config }: { config: SessionConfig }) {
   const navigate = useNavigate();
-  const { state, recordResult, endSession } = usePracticeSession(config);
+  const store = useAppStore();
+  const { settings } = useAppData();
+  const { state, recordResult, endSession } = usePracticeSession(config, {
+    // Every counted answer is saved right away (spec 6.3), with the session's totals.
+    onAttemptRecorded: store.recordAttempt,
+    onSessionEnded: store.saveSession,
+  });
   const { session, currentQuestion, currentQuestionIndex, status } = state;
   const [feedback, setFeedback] = useState('');
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const navigatedRef = useRef(false);
 
   const total = sessionTotal(session);
-  const settings = DEFAULT_SETTINGS; // Replaced by saved settings in Phase 11.
 
   // When the session finishes, show the summary (or go back to setup if nothing was answered).
   useEffect(() => {

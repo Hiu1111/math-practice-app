@@ -505,3 +505,23 @@
   gap: 12px;
   margin-bottom: 8px;
 }
+
+/* ------------------------------------------------------------------
+   Storage warning
+   ------------------------------------------------------------------ */
+.storage-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 880px;
+  margin: 0 auto 20px;
+  padding: 12px 16px;
+  border: 2px solid #fab005;
+  border-radius: var(--radius-md);
+  background: var(--color-sun-soft);
+  font-weight: 700;
+}
+
+.storage-warning p {
+  margin: 0;
+}

@@ -1,11 +1,14 @@
 import { BrowserRouter } from 'react-router-dom';
+import { AppProvider } from './AppProvider';
 import { AppRoutes } from './AppRoutes';
 
-/** Root component: provides routing for the whole app. */
+/** Root component: provides saved app data and routing for the whole app. */
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AppProvider>
   );
 }

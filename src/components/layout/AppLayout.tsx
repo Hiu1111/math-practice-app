@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
+import { StorageWarning } from './StorageWarning';
 
 /** Frame shared by every page: skip link, header, main content area and footer. */
 export function AppLayout() {
@@ -18,6 +19,7 @@ export function AppLayout() {
       </a>
       <Header />
       <main id="main-content" className="app-main" tabIndex={-1}>
+        <StorageWarning />
         <Outlet />
       </main>
       <footer className="site-footer">

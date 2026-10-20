@@ -1,6 +1,15 @@
 import {
   CHOICE_COUNT,
+  DEFAULT_SETTINGS,
+  DIFFICULTY_LEVELS,
+  MATH_OPERATIONS,
+  MAX_MASTERY_THRESHOLD,
+  MIN_MASTERY_THRESHOLD,
   SESSION_LENGTHS,
+  type AppSettings,
+  type AppStatistics,
+  type OperationStatistics,
+  type PracticeAttempt,
   type PracticeSession,
   type Question,
   type SessionConfig,
@@ -79,14 +88,20 @@ export function isValidSessionConfig(value: unknown): value is SessionConfig {
 const isCount = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
-/** Runtime check for a finished session passed to the summary page. */
-export function isCompletedSession(value: unknown): value is PracticeSession {
-  if (typeof value !== 'object' || value === null) return false;
-  const s = value as Record<string, unknown>;
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isWhole = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value);
+
+/** A session record as stored in localStorage; it may be unfinished (no completedAt). */
+export function isStoredSession(value: unknown): value is PracticeSession {
+  if (!isObject(value)) return false;
+  const s = value;
   return (
     typeof s.id === 'string' &&
     typeof s.startedAt === 'string' &&
-    typeof s.completedAt === 'string' &&
+    (s.completedAt === undefined || typeof s.completedAt === 'string') &&
     isValidSessionConfig({
       operations: s.operations,
       difficulty: s.difficulty,
@@ -99,4 +114,102 @@ export function isCompletedSession(value: unknown): value is PracticeSession {
     isCount(s.reviewQuestionsCompleted) &&
     s.correct + s.incorrect === s.attempted
   );
+}
+
+/** Runtime check for a finished session passed to the summary page. */
+export function isCompletedSession(
+  value: unknown,
+): value is PracticeSession & { completedAt: string } {
+  return isStoredSession(value) && typeof value.completedAt === 'string';
+}
+
+/** One stored practice attempt (spec 10.1). */
+export function isValidAttempt(value: unknown): value is PracticeAttempt {
+  if (!isObject(value)) return false;
+  const a = value;
+  return (
+    typeof a.id === 'string' &&
+    typeof a.questionId === 'string' &&
+    isMathOperation(a.operation) &&
+    isWhole(a.firstOperand) &&
+    isWhole(a.secondOperand) &&
+    isWhole(a.correctAnswer) &&
+    isWhole(a.selectedAnswer) &&
+    typeof a.selfReportedCorrect === 'boolean' &&
+    isDifficultyLevel(a.difficulty) &&
+    (a.source === 'regular' || a.source === 'mistake-review') &&
+    typeof a.attemptedAt === 'string' &&
+    typeof a.sessionId === 'string' &&
+    (a.mistakePatternId === undefined || typeof a.mistakePatternId === 'string')
+  );
+}
+
+function isTotals(value: unknown): value is OperationStatistics {
+  return (
+    isObject(value) &&
+    isCount(value.attempted) &&
+    isCount(value.correct) &&
+    isCount(value.incorrect) &&
+    value.correct + value.incorrect === value.attempted
+  );
+}
+
+/** Aggregate statistics (spec 10.4): every total must add up. */
+export function isValidStatistics(value: unknown): value is AppStatistics {
+  if (!isTotals(value)) return false;
+  const v = value as unknown as Record<string, unknown>;
+  const byOperation = v.byOperation;
+  const byDifficulty = v.byDifficulty;
+  return (
+    isObject(byOperation) &&
+    MATH_OPERATIONS.every((op) => isTotals(byOperation[op])) &&
+    isObject(byDifficulty) &&
+    DIFFICULTY_LEVELS.every((level) => isTotals(byDifficulty[level]))
+  );
+}
+
+/**
+ * Turn whatever was stored into valid settings: each valid field is kept and
+ * each missing or invalid field falls back to its default (TODO task 37).
+ */
+export function sanitizeSettings(value: unknown): { settings: AppSettings; repaired: boolean } {
+  const raw = isObject(value) ? value : {};
+  const d = DEFAULT_SETTINGS;
+  const bool = (key: 'soundEffects' | 'cardAnimation' | 'showExplanations' | 'feedbackMessages') =>
+    typeof raw[key] === 'boolean' ? (raw[key] as boolean) : d[key];
+
+  const ops = raw.defaultOperations;
+  const validOps =
+    Array.isArray(ops) &&
+    ops.length > 0 &&
+    ops.every(isMathOperation) &&
+    new Set(ops).size === ops.length;
+  const threshold = raw.masteryThreshold;
+
+  const settings: AppSettings = {
+    soundEffects: bool('soundEffects'),
+    cardAnimation: bool('cardAnimation'),
+    showExplanations: bool('showExplanations'),
+    feedbackMessages: bool('feedbackMessages'),
+    defaultSessionLength: (SESSION_LENGTHS as readonly unknown[]).includes(raw.defaultSessionLength)
+      ? (raw.defaultSessionLength as AppSettings['defaultSessionLength'])
+      : d.defaultSessionLength,
+    defaultDifficulty: isDifficultyLevel(raw.defaultDifficulty)
+      ? raw.defaultDifficulty
+      : d.defaultDifficulty,
+    defaultOperations: validOps
+      ? MATH_OPERATIONS.filter((op) => (ops as unknown[]).includes(op))
+      : [...d.defaultOperations],
+    masteryThreshold:
+      isWhole(threshold) && threshold >= MIN_MASTERY_THRESHOLD && threshold <= MAX_MASTERY_THRESHOLD
+        ? threshold
+        : d.masteryThreshold,
+  };
+
+  const repaired =
+    !isObject(value) ||
+    (Object.keys(settings) as (keyof AppSettings)[]).some(
+      (key) => JSON.stringify(raw[key]) !== JSON.stringify(settings[key]),
+    );
+  return { settings, repaired };
 }

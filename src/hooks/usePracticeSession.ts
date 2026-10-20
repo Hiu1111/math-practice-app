@@ -138,11 +138,21 @@ export function practiceSessionReducer(
   }
 }
 
+export interface PracticeSessionCallbacks {
+  /** Called after each counted answer, with the session's updated totals (for saving). */
+  onAttemptRecorded?: (attempt: PracticeAttempt, session: PracticeSession) => void;
+  /** Called when the student ends a continuous session. */
+  onSessionEnded?: (session: PracticeSession) => void;
+}
+
 /**
  * Runs one practice session. Question generation and timestamps happen here
  * (outside the reducer, which stays pure and easy to test).
  */
-export function usePracticeSession(config: SessionConfig) {
+export function usePracticeSession(
+  config: SessionConfig,
+  { onAttemptRecorded, onSessionEnded }: PracticeSessionCallbacks = {},
+) {
   const [state, dispatch] = useReducer(practiceSessionReducer, config, (c) =>
     createInitialState(
       c,
@@ -170,14 +180,27 @@ export function usePracticeSession(config: SessionConfig) {
       const nextQuestion = finishes
         ? null
         : generateQuestionForOperations(config.operations, config.difficulty, { avoid: question });
-      dispatch({ type: 'recordAttempt', attempt, nextQuestion });
+      const action: PracticeSessionAction = { type: 'recordAttempt', attempt, nextQuestion };
+
+      // The reducer is pure, so we can compute the result here to know whether it counted.
+      const next = practiceSessionReducer(state, action);
+      if (next === state) return;
+      dispatch(action);
+      onAttemptRecorded?.(attempt, next.session);
     },
-    [state, config],
+    [state, config, onAttemptRecorded],
   );
 
   const endSession = useCallback(() => {
-    dispatch({ type: 'endSession', completedAt: new Date().toISOString() });
-  }, []);
+    const action: PracticeSessionAction = {
+      type: 'endSession',
+      completedAt: new Date().toISOString(),
+    };
+    const next = practiceSessionReducer(state, action);
+    if (next === state) return;
+    dispatch(action);
+    onSessionEnded?.(next.session);
+  }, [state, onSessionEnded]);
 
   return { state, recordResult, endSession };
 }
