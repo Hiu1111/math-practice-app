@@ -78,7 +78,8 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
         : undefined,
   });
   const { session, currentQuestion, currentQuestionIndex, status } = state;
-  const [feedback, setFeedback] = useState('');
+  // Each new message gets a new id, so its "pop" animation plays again.
+  const [feedback, setFeedback] = useState({ text: '', id: 0 });
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const navigatedRef = useRef(false);
 
@@ -98,7 +99,12 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
   }, [status, session, config, navigate]);
 
   const handleResult = (selectedAnswer: number, correct: boolean) => {
-    if (settings.feedbackMessages) setFeedback((previous) => pickFeedback(correct, previous));
+    if (settings.feedbackMessages) {
+      setFeedback((previous) => ({
+        text: pickFeedback(correct, previous.text),
+        id: previous.id + 1,
+      }));
+    }
     if (settings.soundEffects) playResultSound(correct);
     recordResult(selectedAnswer, correct);
   };
@@ -112,8 +118,13 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
   return (
     <PageContainer title="Practice" hideTitle width="narrow">
       <SessionHeader session={session} total={total} />
+      {/* The live region stays mounted; only the inner text is replaced, so it is announced. */}
       <p className="feedback" aria-live="polite">
-        {feedback}
+        {feedback.text && (
+          <span key={feedback.id} className="feedback__text">
+            {feedback.text}
+          </span>
+        )}
       </p>
 
       {status === 'active' && (

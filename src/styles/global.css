@@ -153,6 +153,7 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 10px;
   font-size: 1.35rem;
   font-weight: 900;
@@ -395,5 +396,20 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Tablets: keep the logo and the four links on one row. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .nav__link {
+    padding-inline: 10px;
+  }
+}
+
+/* Very small phones (320px): fit all four links on one row. */
+@media (max-width: 360px) {
+  .nav__link {
+    padding-inline: 6px;
+    font-size: 0.88rem;
   }
 }

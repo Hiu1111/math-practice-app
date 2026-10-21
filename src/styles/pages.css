@@ -201,7 +201,7 @@
 /* Operation toggles */
 .op-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -308,11 +308,13 @@
 }
 
 .radio-grid--levels {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* minmax(0, 1fr): columns may shrink below their content's minimum width,
+   so the cards fit on 320px phones instead of pushing the page sideways. */
 .radio-grid--lengths {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .radio-card {
@@ -414,7 +416,13 @@
 @media (max-width: 720px) {
   .op-grid,
   .radio-grid--lengths {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 360px) {
+  .radio-card--center {
+    padding-inline: 14px;
   }
 }
 

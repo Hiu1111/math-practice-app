@@ -580,3 +580,24 @@
     display: none;
   }
 }
+
+/* Child-friendly feedback "pop" (TODO task 73). Turned off with the Encouraging
+   messages setting; the global reduced-motion rule removes the animation. */
+.feedback__text {
+  display: inline-block;
+  animation: feedback-pop 0.35s ease-out;
+}
+
+@keyframes feedback-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
