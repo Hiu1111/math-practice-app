@@ -413,3 +413,10 @@ a {
     font-size: 0.88rem;
   }
 }
+
+/* Shown briefly while a code-split page downloads (slow connections only). */
+.page-loading {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--color-muted);
+}

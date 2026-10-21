@@ -1,8 +1,13 @@
+import { memo } from 'react';
 import { calculateAccuracy } from '../../services/statisticsService';
 import type { OperationStatistics } from '../../types';
 
 /** Overall totals and accuracy (spec 6.6, overall statistics). */
-export function StatisticsOverview({ totals }: { totals: OperationStatistics }) {
+export const StatisticsOverview = memo(function StatisticsOverview({
+  totals,
+}: {
+  totals: OperationStatistics;
+}) {
   const accuracy = calculateAccuracy(totals.correct, totals.attempted);
   return (
     <section className="stats-section card" aria-labelledby="stats-overall">
@@ -33,4 +38,4 @@ export function StatisticsOverview({ totals }: { totals: OperationStatistics }) 
       </dl>
     </section>
   );
-}
+});

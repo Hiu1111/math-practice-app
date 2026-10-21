@@ -1,4 +1,4 @@
-import { Navigate, Route, createRoutesFromElements } from 'react-router-dom';
+import { Navigate, Route, createRoutesFromElements } from 'react-router';
 import { AppLayout } from '../components/layout/AppLayout';
 import { HomePage } from '../pages/HomePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -6,8 +6,19 @@ import { PracticePage } from '../pages/PracticePage';
 import { PracticeSetupPage } from '../pages/PracticeSetupPage';
 import { RouteErrorPage } from '../pages/RouteErrorPage';
 import { SessionSummaryPage } from '../pages/SessionSummaryPage';
-import { SettingsPage } from '../pages/SettingsPage';
-import { StatisticsPage } from '../pages/StatisticsPage';
+import { lazyPage } from './lazyPage';
+
+// Statistics and Settings are not needed to start practicing, so their code is
+// split out of the first download and fetched when first needed (TODO task 85).
+const StatisticsPage = lazyPage(() =>
+  import('../pages/StatisticsPage').then((m) => m.StatisticsPage),
+);
+const SettingsPage = lazyPage(() => import('../pages/SettingsPage').then((m) => m.SettingsPage));
+
+/** Fetch the code of every lazily loaded page (when idle, and before tests). */
+export function preloadLazyPages(): Promise<void[]> {
+  return Promise.all([StatisticsPage.preload(), SettingsPage.preload()]);
+}
 
 /**
  * All application routes (spec 16). Used with a data router

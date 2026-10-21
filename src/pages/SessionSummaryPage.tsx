@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { ButtonLink } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { PageContainer } from '../components/layout/PageContainer';

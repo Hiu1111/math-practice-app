@@ -31,7 +31,8 @@ export function SessionSummary({ session }: SessionSummaryProps) {
     config: { ...config, reviewMode: 'mistake-review' },
   };
 
-  const { mistakePatterns, settings } = useAppData();
+  const mistakePatterns = useAppData((s) => s.mistakePatterns);
+  const settings = useAppData((s) => s.settings);
   const mistakesToPractice = reviewablePatterns(
     mistakePatterns,
     config,

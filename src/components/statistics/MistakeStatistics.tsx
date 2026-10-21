@@ -1,3 +1,5 @@
+import { memo, useMemo, useState } from 'react';
+import { Button } from '../common/Button';
 import { isMastered } from '../../services/mistakeService';
 import { computeMistakeStatistics, sortByMostMissed } from '../../services/statisticsService';
 import type { AppStatistics, MistakePattern } from '../../types';
@@ -14,6 +16,9 @@ interface MistakeStatisticsProps {
   masteryThreshold: number;
 }
 
+/** How many mistakes to list before "Show all" (keeps the page short and fast). */
+export const MISTAKES_SHOWN_AT_FIRST = 10;
+
 const times = (n: number) => `${n} ${n === 1 ? 'time' : 'times'}`;
 
 /** "8 × 7 = 56" */
@@ -22,14 +27,26 @@ function factText(p: MistakePattern) {
 }
 
 /** Mistake review statistics and details (spec 6.6, TODO tasks 63–65). */
-export function MistakeStatistics({
+export const MistakeStatistics = memo(function MistakeStatistics({
   patterns,
   statistics,
   masteryThreshold,
 }: MistakeStatisticsProps) {
-  const stats = computeMistakeStatistics(patterns, statistics, masteryThreshold);
-  const active = sortByMostMissed(patterns.filter((p) => !isMastered(p, masteryThreshold)));
-  const mastered = sortByMostMissed(patterns.filter((p) => isMastered(p, masteryThreshold)));
+  // Recalculated only when the saved mistakes, statistics or threshold change.
+  const stats = useMemo(
+    () => computeMistakeStatistics(patterns, statistics, masteryThreshold),
+    [patterns, statistics, masteryThreshold],
+  );
+  const { active, mastered } = useMemo(
+    () => ({
+      active: sortByMostMissed(patterns.filter((p) => !isMastered(p, masteryThreshold))),
+      mastered: sortByMostMissed(patterns.filter((p) => isMastered(p, masteryThreshold))),
+    }),
+    [patterns, masteryThreshold],
+  );
+  const [showAllActive, setShowAllActive] = useState(false);
+  const [masteredOpen, setMasteredOpen] = useState(false);
+  const shownActive = showAllActive ? active : active.slice(0, MISTAKES_SHOWN_AT_FIRST);
 
   return (
     <section className="stats-section card" aria-labelledby="stats-mistakes">
@@ -86,48 +103,74 @@ export function MistakeStatistics({
               {active.length === 0 ? (
                 <p className="stats-section__empty">Every mistake is mastered. Amazing!</p>
               ) : (
-                <ul className="fact-list" aria-label="Mistakes to practice">
-                  {active.map((p) => {
-                    const progress = Math.min(p.similarCorrectCount, masteryThreshold);
-                    return (
-                      <li key={p.id} className="fact-list__item fact-list__item--detail">
-                        <span className="fact-list__fact">{factText(p)}</span>
-                        <span className="fact-list__meta">
-                          missed {times(p.incorrectCount)}, last on{' '}
-                          {formatSessionDate(p.lastIncorrectAt)}
-                        </span>
-                        <span className="fact-list__progress">
-                          <span className="meter" aria-hidden="true">
-                            <span
-                              className="meter__fill"
-                              style={{ width: `${(progress / masteryThreshold) * 100}%` }}
-                            />
+                <>
+                  <ul
+                    id="mistakes-to-practice"
+                    className="fact-list"
+                    aria-label="Mistakes to practice"
+                  >
+                    {shownActive.map((p) => {
+                      const progress = Math.min(p.similarCorrectCount, masteryThreshold);
+                      return (
+                        <li key={p.id} className="fact-list__item fact-list__item--detail">
+                          <span className="fact-list__fact">{factText(p)}</span>
+                          <span className="fact-list__meta">
+                            missed {times(p.incorrectCount)}, last on{' '}
+                            {formatSessionDate(p.lastIncorrectAt)}
                           </span>
-                          <span>
-                            {progress} of {masteryThreshold} correct to master
+                          <span className="fact-list__progress">
+                            <span className="meter" aria-hidden="true">
+                              <span
+                                className="meter__fill"
+                                style={{ width: `${(progress / masteryThreshold) * 100}%` }}
+                              />
+                            </span>
+                            <span>
+                              {progress} of {masteryThreshold} correct to master
+                            </span>
                           </span>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {active.length > MISTAKES_SHOWN_AT_FIRST && (
+                    <Button
+                      variant="secondary"
+                      className="show-more"
+                      aria-controls="mistakes-to-practice"
+                      aria-expanded={showAllActive}
+                      onClick={() => setShowAllActive((v) => !v)}
+                    >
+                      {showAllActive
+                        ? 'Show fewer'
+                        : `Show all ${active.length} mistakes to practice`}
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
 
           {mastered.length > 0 && (
-            <details className="mastered-list">
+            <details
+              className="mastered-list"
+              onToggle={(e) => setMasteredOpen(e.currentTarget.open)}
+            >
               <summary>Mastered mistakes ({mastered.length})</summary>
               <ul className="fact-list" aria-label="Mastered mistakes">
-                {mastered.map((p) => (
-                  <li key={p.id} className="fact-list__item">
-                    <span className="fact-list__fact">
-                      <span aria-hidden="true">🏅 </span>
-                      {factText(p)}
-                    </span>
-                    <span className="fact-list__meta">missed {times(p.incorrectCount)} before</span>
-                  </li>
-                ))}
+                {/* Only built when opened: there can be hundreds. */}
+                {masteredOpen &&
+                  mastered.map((p) => (
+                    <li key={p.id} className="fact-list__item">
+                      <span className="fact-list__fact">
+                        <span aria-hidden="true">🏅 </span>
+                        {factText(p)}
+                      </span>
+                      <span className="fact-list__meta">
+                        missed {times(p.incorrectCount)} before
+                      </span>
+                    </li>
+                  ))}
               </ul>
             </details>
           )}
@@ -135,4 +178,4 @@ export function MistakeStatistics({
       )}
     </section>
   );
-}
+});

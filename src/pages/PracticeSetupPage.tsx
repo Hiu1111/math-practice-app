@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { Button } from '../components/common/Button';
 import { PageContainer } from '../components/layout/PageContainer';
 import { DifficultySelector } from '../components/practice/DifficultySelector';
@@ -33,7 +33,8 @@ export function PracticeSetupPage() {
   const previous = isValidSessionConfig(locationState?.config) ? locationState.config : null;
   // Start from the previous session's choices if there are any, otherwise the saved defaults.
   // Changes here apply to this session only; they do not change the saved defaults.
-  const { settings, mistakePatterns } = useAppData();
+  const settings = useAppData((s) => s.settings);
+  const mistakePatterns = useAppData((s) => s.mistakePatterns);
 
   const [operations, setOperations] = useState<MathOperation[]>(() => [
     ...(previous?.operations ?? settings.defaultOperations),

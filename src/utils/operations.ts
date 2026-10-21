@@ -68,18 +68,23 @@ export function questionCountLabel(questionNumber: number, totalQuestions: numbe
 }
 
 /** Format numbers with thousands separators for display (1,250). */
+// Formatters are created once and reused: building a new one for every number
+// or date (as toLocaleString does) is slow when a page shows hundreds of them.
+const NUMBER_FORMAT = new Intl.NumberFormat('en-US');
+const SESSION_DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
 export function formatNumber(n: number): string {
-  return n.toLocaleString('en-US');
+  return NUMBER_FORMAT.format(n);
 }
 
 /** "Oct 20, 3:45 PM" in the student's own time zone. */
 export function formatSessionDate(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return SESSION_DATE_FORMAT.format(new Date(iso));
 }
 
 export function isMathOperation(value: unknown): value is MathOperation {

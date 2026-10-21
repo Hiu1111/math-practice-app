@@ -14,9 +14,12 @@ import {
   isValidStatistics,
   sanitizeSettings,
 } from '../utils/validation';
-import { computeReviewTotals, computeStatistics } from './statisticsService';
+import { applyAttempt, computeReviewTotals } from './statisticsService';
 
-/** localStorage keys from spec section 11. The app never reads or writes any other key. */
+/**
+ * localStorage keys from spec section 11, plus `archive` (spec 23: older attempt
+ * records summarized). The app never reads or writes any other key.
+ */
 export const STORAGE_KEYS = {
   settings: 'mathPractice.settings',
   sessions: 'mathPractice.sessions',
@@ -24,6 +27,7 @@ export const STORAGE_KEYS = {
   mistakePatterns: 'mathPractice.mistakePatterns',
   statistics: 'mathPractice.statistics',
   version: 'mathPractice.version',
+  archive: 'mathPractice.archive',
 } as const;
 
 const DATA_KEYS = [
@@ -32,6 +36,7 @@ const DATA_KEYS = [
   STORAGE_KEYS.attempts,
   STORAGE_KEYS.mistakePatterns,
   STORAGE_KEYS.statistics,
+  STORAGE_KEYS.archive,
 ];
 
 /**
@@ -41,10 +46,14 @@ const DATA_KEYS = [
 export const SCHEMA_VERSION = 2;
 
 /**
- * Keep detailed history compact (spec 23). Older detail is dropped first;
- * aggregate statistics are stored separately, so totals are never lost.
+ * Keep detailed history compact (spec 23, TODO task 84). Only the newest
+ * attempts are kept in full: enough for the 100 stored sessions at 20 questions
+ * each. Older attempts are folded into a small archive summary, and the
+ * aggregate statistics are stored separately, so no totals are ever lost.
+ * (Measured: 5000 detailed attempts took ~1.9 million characters of storage and
+ * about 120 ms per answer to save on a 6x-slowed CPU.)
  */
-export const MAX_STORED_ATTEMPTS = 5000;
+export const MAX_STORED_ATTEMPTS = 2000;
 export const MAX_STORED_SESSIONS = 100;
 
 /** Below this many attempts we stop trimming to make room and report the failure instead. */
@@ -128,6 +137,43 @@ function removeKey(storage: Storage | null, key: string): WriteResult {
 }
 
 // ------------------------------------------------------------------
+// Archive of older attempts
+// ------------------------------------------------------------------
+
+/** Totals for attempts that were moved out of the detailed history. */
+export interface AttemptArchive {
+  statistics: AppStatistics;
+  /** When the oldest and newest archived attempts were answered (null if none). */
+  oldestAt: string | null;
+  newestAt: string | null;
+}
+
+export function emptyArchive(): AttemptArchive {
+  return { statistics: emptyAppStatistics(), oldestAt: null, newestAt: null };
+}
+
+/** Add attempts (oldest first) to the archive's totals. */
+export function archiveAttempts(
+  archive: AttemptArchive,
+  attempts: readonly PracticeAttempt[],
+): AttemptArchive {
+  if (attempts.length === 0) return archive;
+  return {
+    statistics: attempts.reduce(applyAttempt, archive.statistics),
+    oldestAt: archive.oldestAt ?? attempts[0].attemptedAt,
+    newestAt: attempts[attempts.length - 1].attemptedAt,
+  };
+}
+
+export function isValidArchive(value: unknown): value is AttemptArchive {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  const isDate = (d: unknown) =>
+    d === null || (typeof d === 'string' && !Number.isNaN(Date.parse(d)));
+  return isValidStatistics(v.statistics) && isDate(v.oldestAt) && isDate(v.newestAt);
+}
+
+// ------------------------------------------------------------------
 // Schema versioning
 // ------------------------------------------------------------------
 
@@ -196,6 +242,7 @@ export interface LoadedData {
   settings: AppSettings;
   sessions: PracticeSession[];
   attempts: PracticeAttempt[];
+  archive: AttemptArchive;
   statistics: AppStatistics;
   mistakePatterns: MistakePattern[];
   /** Categories that were missing parts or corrupted and have been repaired. */
@@ -256,23 +303,40 @@ export function loadAppData(storage: Storage | null): LoadedData {
     writeJson(storage, STORAGE_KEYS.mistakePatterns, mistakeList.items);
   }
 
-  const attemptList = loadList(storage, STORAGE_KEYS.attempts, isValidAttempt);
-  if (attemptList.repaired) {
-    repaired.push('attempts');
-    writeJson(storage, STORAGE_KEYS.attempts, attemptList.items);
+  // The archive is internal bookkeeping that the student never sees, so a
+  // damaged one is simply reset without showing a notice.
+  const archiveRead = readJson(storage, STORAGE_KEYS.archive);
+  let archive = emptyArchive();
+  if (archiveRead.status === 'ok' && isValidArchive(archiveRead.value)) {
+    archive = archiveRead.value;
+  } else if (archiveRead.status === 'ok' || archiveRead.status === 'invalid') {
+    removeKey(storage, STORAGE_KEYS.archive);
   }
 
-  // Aggregates: if missing or inconsistent, rebuild them from the stored attempts.
+  const attemptList = loadList(storage, STORAGE_KEYS.attempts, isValidAttempt);
+  let attempts = attemptList.items;
+  if (attemptList.repaired) {
+    repaired.push('attempts');
+    writeJson(storage, STORAGE_KEYS.attempts, attempts);
+  }
+  // A longer history (e.g. saved by an earlier version) is archived down to size.
+  if (attempts.length > MAX_STORED_ATTEMPTS) {
+    const saved = saveAttempts(storage, attempts, archive);
+    attempts = saved.attempts;
+    archive = saved.archive;
+  }
+
+  // Aggregates: if missing or inconsistent, rebuild them from the archive
+  // totals plus the detailed attempts, so the rebuilt totals are complete.
   const statsRead = readJson(storage, STORAGE_KEYS.statistics);
   let statistics: AppStatistics;
   if (statsRead.status === 'ok' && isValidStatistics(statsRead.value)) {
     statistics = statsRead.value;
   } else {
-    statistics =
-      attemptList.items.length > 0 ? computeStatistics(attemptList.items) : emptyAppStatistics();
+    statistics = attempts.reduce(applyAttempt, archive.statistics);
     if (
       statsRead.status !== 'unavailable' &&
-      (statsRead.status !== 'missing' || attemptList.items.length > 0)
+      (statsRead.status !== 'missing' || statistics.attempted > 0)
     ) {
       repaired.push('statistics');
       writeJson(storage, STORAGE_KEYS.statistics, statistics);
@@ -286,7 +350,8 @@ export function loadAppData(storage: Storage | null): LoadedData {
   return {
     settings,
     sessions: sessionList.items,
-    attempts: attemptList.items,
+    attempts,
+    archive,
     mistakePatterns: mistakeList.items,
     statistics,
     repaired,
@@ -299,21 +364,44 @@ export function loadAppData(storage: Storage | null): LoadedData {
 // ------------------------------------------------------------------
 
 /**
- * Save the attempt history, newest last. If storage is full, drop the oldest
- * half and try again (TODO task 35: storage-capacity errors), so recent
- * history keeps saving. Returns the list that is actually stored.
+ * Save the attempt history, newest last, keeping at most MAX_STORED_ATTEMPTS in
+ * full. Older attempts are folded into the archive. If storage is full, more
+ * of the oldest attempts are archived and the save is tried again (TODO task
+ * 35), so recent history keeps saving.
+ *
+ * Returns what is now stored. If saving fails, nothing in storage changed: the
+ * archive is left as it was, and the in-memory list is only capped.
  */
 export function saveAttempts(
   storage: Storage | null,
   attempts: readonly PracticeAttempt[],
-): { result: WriteResult; attempts: PracticeAttempt[] } {
-  let list = attempts.slice(-MAX_STORED_ATTEMPTS);
+  archive: AttemptArchive = emptyArchive(),
+): {
+  result: WriteResult;
+  attempts: PracticeAttempt[];
+  archive: AttemptArchive;
+  /** The archive write, when the archive changed (null otherwise). */
+  archiveResult: WriteResult | null;
+} {
+  let keepFrom = Math.max(0, attempts.length - MAX_STORED_ATTEMPTS);
   for (;;) {
+    const list = attempts.slice(keepFrom);
     const result = writeJson(storage, STORAGE_KEYS.attempts, list);
-    if (result.ok || result.reason !== 'quota' || list.length <= MIN_ATTEMPTS_WHEN_TRIMMING) {
-      return { result, attempts: result.ok ? list : [...attempts] };
+    if (result.ok) {
+      const nextArchive = archiveAttempts(archive, attempts.slice(0, keepFrom));
+      const archiveResult =
+        nextArchive === archive ? null : writeJson(storage, STORAGE_KEYS.archive, nextArchive);
+      return { result, attempts: list, archive: nextArchive, archiveResult };
     }
-    list = list.slice(Math.floor(list.length / 2));
+    if (result.reason !== 'quota' || list.length <= MIN_ATTEMPTS_WHEN_TRIMMING) {
+      return {
+        result,
+        attempts: attempts.slice(-MAX_STORED_ATTEMPTS),
+        archive,
+        archiveResult: null,
+      };
+    }
+    keepFrom += Math.floor(list.length / 2);
   }
 }
 
@@ -322,6 +410,7 @@ export function clearPracticeHistory(storage: Storage | null): WriteResult[] {
   return [
     STORAGE_KEYS.sessions,
     STORAGE_KEYS.attempts,
+    STORAGE_KEYS.archive,
     STORAGE_KEYS.statistics,
     STORAGE_KEYS.mistakePatterns,
   ].map((key) => removeKey(storage, key));

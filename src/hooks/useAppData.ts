@@ -9,8 +9,17 @@ export function useAppStore(): AppStore {
   return store;
 }
 
-/** The current saved data; re-renders the component whenever it changes. */
-export function useAppData(): AppDataState {
+/**
+ * One piece of the saved data, e.g. `useAppData((s) => s.settings)`.
+ * The component re-renders only when that piece changes, not on every save:
+ * answering a question replaces `attempts` and `statistics`, but leaves
+ * `settings` untouched, so a component that only reads settings stays put.
+ *
+ * The selector must return a value already in the state (or a primitive);
+ * building a new object or array inside it would re-render on every change.
+ */
+export function useAppData<T>(selector: (state: AppDataState) => T): T {
   const store = useAppStore();
-  return useSyncExternalStore(store.subscribe, store.getState, store.getState);
+  const select = () => selector(store.getState());
+  return useSyncExternalStore(store.subscribe, select, select);
 }

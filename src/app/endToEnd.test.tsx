@@ -144,6 +144,7 @@ describe('the spec 21.3 flow, entirely through the UI', () => {
         name: /statistics/i,
       }),
     );
+    await user.click(screen.getByText(/mastered mistakes \(1\)/i));
     const mastered = screen.getByRole('list', { name: 'Mastered mistakes' });
     expect(mastered).toHaveTextContent(`${pattern.firstOperand} × ${pattern.secondOperand}`);
   });

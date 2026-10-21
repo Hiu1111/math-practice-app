@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider, createMemoryRouter, type RouteObject } from 'react-router-dom';
+import { RouterProvider, createMemoryRouter, type RouteObject } from 'react-router';
 import { AppProvider } from '../app/AppProvider';
 import { createAppStore } from '../app/appStore';
 import { routes } from '../app/routes';

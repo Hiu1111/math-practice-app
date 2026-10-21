@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider, createMemoryRouter, type InitialEntry } from 'react-router-dom';
+import { RouterProvider, createMemoryRouter, type InitialEntry } from 'react-router';
 import { AppProvider } from '../app/AppProvider';
 import type { AppStore } from '../app/appStore';
 import { routes } from '../app/routes';

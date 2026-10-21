@@ -274,6 +274,35 @@ describe('mistake statistics on the statistics page (tasks 63–65)', () => {
     );
   });
 
+  it('lists the first 10 mistakes to practice, with a button to show the rest', async () => {
+    const store = createAppStore();
+    const session = makeSession({ attempted: 14, correct: 0, incorrect: 14 });
+    for (let a = 1; a <= 14; a++) {
+      store.recordAttempt(
+        makeAttempt({
+          firstOperand: a,
+          secondOperand: 1,
+          correctAnswer: a + 1,
+          selfReportedCorrect: false,
+          difficulty: 1,
+          sessionId: session.id,
+        }),
+        session,
+      );
+    }
+    const { user } = renderApp('/statistics');
+    const list = screen.getByRole('list', { name: /mistakes to practice/i });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(10);
+
+    const more = screen.getByRole('button', { name: 'Show all 14 mistakes to practice' });
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(more).toHaveAttribute('aria-controls', list.id);
+    await user.click(more);
+    expect(within(list).getAllByRole('listitem')).toHaveLength(14);
+    await user.click(screen.getByRole('button', { name: 'Show fewer' }));
+    expect(within(list).getAllByRole('listitem')).toHaveLength(10);
+  });
+
   it('shows an empty state when there are no mistakes', () => {
     seed([{ attempt: {}, session: makeSession() }]);
     renderApp('/statistics');

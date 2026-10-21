@@ -1,4 +1,5 @@
-import { STORAGE_KEYS } from '../services/storageService';
+import { computeStatistics } from '../services/statisticsService';
+import { MAX_STORED_ATTEMPTS, SCHEMA_VERSION, STORAGE_KEYS } from '../services/storageService';
 import { makeAttempt, makeSession } from '../test/fixtures';
 import { MemoryStorage } from '../test/memoryStorage';
 import { DEFAULT_SETTINGS } from '../types';
@@ -169,5 +170,29 @@ describe('app store: clearing', () => {
     expect(store.getState().settings).toEqual(DEFAULT_SETTINGS);
     expect(store.getState().attempts).toEqual([]);
     expect(createAppStore(storage).getState().settings).toEqual(DEFAULT_SETTINGS);
+  });
+});
+
+describe('app store: long histories (task 84)', () => {
+  it('keeps the detailed history at its limit while statistics keep counting everything', () => {
+    const attempts = Array.from({ length: MAX_STORED_ATTEMPTS }, () => makeAttempt());
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.version]: { version: SCHEMA_VERSION },
+      [STORAGE_KEYS.attempts]: attempts,
+      [STORAGE_KEYS.statistics]: computeStatistics(attempts),
+    });
+    const store = createAppStore(storage);
+    for (let i = 0; i < 3; i++) {
+      store.recordAttempt(makeAttempt({ selfReportedCorrect: false }), makeSession());
+    }
+    const state = store.getState();
+    expect(state.storageStatus).toBe('ok');
+    expect(state.attempts).toHaveLength(MAX_STORED_ATTEMPTS);
+    expect(state.archive.statistics.attempted).toBe(3);
+    expect(state.statistics.attempted).toBe(MAX_STORED_ATTEMPTS + 3);
+    expect(state.statistics.incorrect).toBe(3);
+
+    // After a restart, the totals are unchanged.
+    expect(createAppStore(storage).getState().statistics).toEqual(state.statistics);
   });
 });

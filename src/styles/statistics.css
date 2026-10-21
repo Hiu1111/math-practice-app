@@ -359,6 +359,10 @@ ol.fact-list > li::before {
   display: block;
 }
 
+.show-more {
+  margin-top: 12px;
+}
+
 .mastered-list {
   margin-top: 20px;
 }

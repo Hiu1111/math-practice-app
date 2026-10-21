@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef } from 'react';
-import { Link, type LinkProps } from 'react-router-dom';
+import { Link, type LinkProps } from 'react-router';
 
 type Variant = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost';
 type Size = 'md' | 'lg';

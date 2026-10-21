@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router';
 import { ErrorState } from '../components/common/ErrorState';
 
 /**

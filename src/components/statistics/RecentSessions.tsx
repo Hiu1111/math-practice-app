@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { calculateAccuracy, recentSessions } from '../../services/statisticsService';
 import type { PracticeSession } from '../../types';
 import { DIFFICULTY_INFO, describeOperations, formatSessionDate } from '../../utils/operations';
@@ -6,8 +7,12 @@ import { DIFFICULTY_INFO, describeOperations, formatSessionDate } from '../../ut
  * Recent sessions, newest first (spec 6.6, recent activity). A real table on
  * wide screens; each row becomes a stacked card on small screens (spec 15).
  */
-export function RecentSessions({ sessions }: { sessions: readonly PracticeSession[] }) {
-  const recent = recentSessions(sessions, 10);
+export const RecentSessions = memo(function RecentSessions({
+  sessions,
+}: {
+  sessions: readonly PracticeSession[];
+}) {
+  const recent = useMemo(() => recentSessions(sessions, 10), [sessions]);
 
   return (
     <section className="stats-section card" aria-labelledby="stats-recent">
@@ -52,4 +57,4 @@ export function RecentSessions({ sessions }: { sessions: readonly PracticeSessio
       )}
     </section>
   );
-}
+});

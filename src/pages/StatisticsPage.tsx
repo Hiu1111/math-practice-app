@@ -16,7 +16,10 @@ export const RESET_CONFIRMATION =
 
 export function StatisticsPage() {
   const store = useAppStore();
-  const { statistics, sessions, mistakePatterns, settings } = useAppData();
+  const statistics = useAppData((s) => s.statistics);
+  const sessions = useAppData((s) => s.sessions);
+  const mistakePatterns = useAppData((s) => s.mistakePatterns);
+  const masteryThreshold = useAppData((s) => s.settings.masteryThreshold);
   const [confirming, setConfirming] = useState(false);
   const [justReset, setJustReset] = useState(false);
 
@@ -50,7 +53,7 @@ export function StatisticsPage() {
         <MistakeStatistics
           patterns={mistakePatterns}
           statistics={statistics}
-          masteryThreshold={settings.masteryThreshold}
+          masteryThreshold={masteryThreshold}
         />
         <RecentSessions sessions={sessions} />
 

@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { ButtonLink } from '../components/common/Button';
 import { PageContainer } from '../components/layout/PageContainer';
 import type { HomeLocationState } from './SettingsPage';

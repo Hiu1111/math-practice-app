@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Button } from '../components/common/Button';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Toggle } from '../components/common/Toggle';
@@ -28,7 +28,7 @@ const THRESHOLD_OPTIONS = Array.from(
 export function SettingsPage() {
   const store = useAppStore();
   const navigate = useNavigate();
-  const { settings } = useAppData();
+  const settings = useAppData((s) => s.settings);
   const [savedMessage, setSavedMessage] = useState('');
   const [operationsMessage, setOperationsMessage] = useState('');
   const [confirmingClear, setConfirmingClear] = useState(false);

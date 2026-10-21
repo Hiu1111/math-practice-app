@@ -23,7 +23,8 @@ function listNames(categories: readonly DataCategory[]): string {
  * - some saved data could not be read when the app opened and was reset
  */
 export function StorageWarning() {
-  const { storageStatus, repairedOnLoad } = useAppData();
+  const storageStatus = useAppData((s) => s.storageStatus);
+  const repairedOnLoad = useAppData((s) => s.repairedOnLoad);
   const store = useAppStore();
 
   return (

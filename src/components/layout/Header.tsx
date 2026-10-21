@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Navigation } from './Navigation';
 
 /** Application header with the app title and main navigation. */

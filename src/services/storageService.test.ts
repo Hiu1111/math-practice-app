@@ -8,6 +8,7 @@ import {
   STORAGE_KEYS,
   clearAllAppData,
   clearPracticeHistory,
+  emptyArchive,
   getBrowserStorage,
   loadAppData,
   migrate,
@@ -17,7 +18,7 @@ import {
 } from './storageService';
 
 describe('storage keys', () => {
-  it('uses the key names from spec section 11', () => {
+  it('uses the key names from spec section 11, plus the archive of older attempts (spec 23)', () => {
     expect(Object.values(STORAGE_KEYS)).toEqual([
       'mathPractice.settings',
       'mathPractice.sessions',
@@ -25,6 +26,7 @@ describe('storage keys', () => {
       'mathPractice.mistakePatterns',
       'mathPractice.statistics',
       'mathPractice.version',
+      'mathPractice.archive',
     ]);
   });
 });
@@ -187,6 +189,50 @@ describe('saveAttempts', () => {
     expect(saved.attempts.at(-1)).toEqual(attempts.at(-1)); // newest kept
   });
 
+  it('folds the attempts it drops into the archive, so their totals are kept', () => {
+    const storage = new MemoryStorage();
+    const attempts = Array.from({ length: MAX_STORED_ATTEMPTS + 3 }, (_, i) =>
+      makeAttempt({ selfReportedCorrect: i !== 1, operation: i < 3 ? 'division' : 'addition' }),
+    );
+    const saved = saveAttempts(storage, attempts);
+    expect(saved.archiveResult).toEqual({ ok: true });
+    expect(saved.archive).toEqual({
+      statistics: computeStatistics(attempts.slice(0, 3)),
+      oldestAt: attempts[0].attemptedAt,
+      newestAt: attempts[2].attemptedAt,
+    });
+    expect(readJson(storage, STORAGE_KEYS.archive)).toEqual({ status: 'ok', value: saved.archive });
+    expect(saved.archive.statistics).toMatchObject({ attempted: 3, correct: 2, incorrect: 1 });
+    expect(saved.archive.statistics.byOperation.division.attempted).toBe(3);
+  });
+
+  it('does not touch the archive when nothing is dropped', () => {
+    const storage = new MemoryStorage();
+    const saved = saveAttempts(storage, [makeAttempt()]);
+    expect(saved.archiveResult).toBeNull();
+    expect(saved.archive).toEqual(emptyArchive());
+    expect(storage.getItem(STORAGE_KEYS.archive)).toBeNull();
+  });
+
+  it('archives whatever it drops to make room when storage is full', () => {
+    const attempts = Array.from({ length: 400 }, () => makeAttempt());
+    const storage = new MemoryStorage({}, JSON.stringify(attempts[0]).length * 150);
+    const saved = saveAttempts(storage, attempts);
+    expect(saved.result.ok).toBe(true);
+    expect(saved.archive.statistics.attempted + saved.attempts.length).toBe(400);
+  });
+
+  it('leaves storage and the archive alone, and caps memory, when saving fails', () => {
+    const storage = new MemoryStorage();
+    storage.broken = true;
+    const attempts = Array.from({ length: MAX_STORED_ATTEMPTS + 5 }, () => makeAttempt());
+    const saved = saveAttempts(storage, attempts);
+    expect(saved.result.ok).toBe(false);
+    expect(saved.archive).toEqual(emptyArchive());
+    expect(saved.attempts).toHaveLength(MAX_STORED_ATTEMPTS);
+    expect(saved.attempts.at(-1)).toEqual(attempts.at(-1));
+  });
+
   it('reports failure if even a small history will not fit', () => {
     const storage = new MemoryStorage({}, 10);
     const attempts = Array.from({ length: 200 }, () => makeAttempt());
@@ -297,5 +343,67 @@ describe('schema v1 → v2 migration', () => {
     expect(data.migration).toEqual({ from: 0, to: 2 });
     expect(data.statistics.review).toEqual({ attempted: 0, correct: 0, incorrect: 0 });
     expect(data.statistics.attempted).toBe(1);
+  });
+});
+
+describe('archive of older attempts (task 84)', () => {
+  const history = (n: number) =>
+    Array.from({ length: n }, (_, i) =>
+      makeAttempt({ selfReportedCorrect: i % 4 !== 0, difficulty: ((i % 4) + 1) as 1 | 2 | 3 | 4 }),
+    );
+
+  it('trims a long history saved by an earlier version, keeping every total', () => {
+    const attempts = history(MAX_STORED_ATTEMPTS + 1000);
+    const statistics = computeStatistics(attempts);
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.version]: { version: SCHEMA_VERSION },
+      [STORAGE_KEYS.attempts]: attempts,
+      [STORAGE_KEYS.statistics]: statistics,
+    });
+    const loaded = loadAppData(storage);
+    expect(loaded.attempts).toHaveLength(MAX_STORED_ATTEMPTS);
+    expect(loaded.attempts.at(-1)).toEqual(attempts.at(-1));
+    expect(loaded.archive.statistics.attempted).toBe(1000);
+    expect(loaded.statistics).toEqual(statistics);
+    expect(loaded.repaired).toEqual([]); // nothing was wrong, so no notice
+    // Saved back in the smaller form.
+    const stored = readJson(storage, STORAGE_KEYS.attempts);
+    expect(stored.status === 'ok' && (stored.value as unknown[]).length).toBe(MAX_STORED_ATTEMPTS);
+  });
+
+  it('rebuilds corrupted statistics exactly, from the archive plus the detailed attempts', () => {
+    const attempts = history(MAX_STORED_ATTEMPTS + 250);
+    const storage = new MemoryStorage({ [STORAGE_KEYS.version]: { version: SCHEMA_VERSION } });
+    saveAttempts(storage, attempts);
+    storage.setItem(STORAGE_KEYS.statistics, '{oops');
+    const loaded = loadAppData(storage);
+    expect(loaded.repaired).toEqual(['statistics']);
+    expect(loaded.statistics).toEqual(computeStatistics(attempts));
+    expect(loaded.statistics.attempted).toBe(MAX_STORED_ATTEMPTS + 250);
+  });
+
+  it('quietly resets a damaged archive without touching anything the student sees', () => {
+    const statistics = computeStatistics(history(10));
+    const storage = new MemoryStorage({
+      [STORAGE_KEYS.version]: { version: SCHEMA_VERSION },
+      [STORAGE_KEYS.statistics]: statistics,
+      [STORAGE_KEYS.archive]: { statistics: 'nope' },
+    });
+    const loaded = loadAppData(storage);
+    expect(loaded.archive).toEqual(emptyArchive());
+    expect(loaded.statistics).toEqual(statistics);
+    expect(loaded.repaired).toEqual([]);
+    expect(storage.getItem(STORAGE_KEYS.archive)).toBeNull();
+  });
+
+  it('Reset Statistics and Clear All also remove the archive', () => {
+    const storage = new MemoryStorage();
+    saveAttempts(storage, history(MAX_STORED_ATTEMPTS + 1));
+    expect(storage.getItem(STORAGE_KEYS.archive)).not.toBeNull();
+    clearPracticeHistory(storage);
+    expect(storage.getItem(STORAGE_KEYS.archive)).toBeNull();
+    saveAttempts(storage, history(MAX_STORED_ATTEMPTS + 1));
+    clearAllAppData(storage);
+    expect(storage.length).toBe(0);
   });
 });

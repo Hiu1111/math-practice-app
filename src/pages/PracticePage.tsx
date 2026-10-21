@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useBlocker, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useBlocker, useLocation, useNavigate } from 'react-router';
 import { Button } from '../components/common/Button';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -81,7 +81,7 @@ interface PracticeSessionViewProps {
 function PracticeSessionView({ routeKey, config, restored }: PracticeSessionViewProps) {
   const navigate = useNavigate();
   const store = useAppStore();
-  const { settings } = useAppData();
+  const settings = useAppData((s) => s.settings);
   const { state, recordResult, endSession } = usePracticeSession(config, {
     initialState: restored?.state ?? null,
     // Every counted answer is saved right away (spec 6.3), with the session's totals.

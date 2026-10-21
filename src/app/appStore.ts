@@ -6,10 +6,12 @@ import {
   STORAGE_KEYS,
   clearAllAppData,
   clearPracticeHistory,
+  emptyArchive,
   getBrowserStorage,
   loadAppData,
   saveAttempts,
   writeJson,
+  type AttemptArchive,
   type DataCategory,
   type WriteResult,
 } from '../services/storageService';
@@ -34,6 +36,8 @@ export interface AppDataState {
   settings: AppSettings;
   sessions: PracticeSession[];
   attempts: PracticeAttempt[];
+  /** Totals for older attempts that are no longer stored in full (spec 23). */
+  archive: AttemptArchive;
   statistics: AppStatistics;
   mistakePatterns: MistakePattern[];
   storageStatus: StorageStatus;
@@ -85,6 +89,7 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
     settings: loaded.settings,
     sessions: loaded.sessions,
     attempts: loaded.attempts,
+    archive: loaded.archive,
     statistics: loaded.statistics,
     mistakePatterns: loaded.mistakePatterns,
     storageStatus: storage ? 'ok' : 'unavailable',
@@ -127,16 +132,20 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
         attempt,
         state.settings.masteryThreshold,
       );
-      const saved = saveAttempts(storage, [...state.attempts, attempt]);
+      const saved = saveAttempts(storage, [...state.attempts, attempt], state.archive);
       const writes = [
         saved.result,
+        ...(saved.archiveResult ? [saved.archiveResult] : []),
         writeJson(storage, STORAGE_KEYS.statistics, statistics),
         writeJson(storage, STORAGE_KEYS.sessions, sessions),
       ];
       if (mistakePatterns !== state.mistakePatterns) {
         writes.push(writeJson(storage, STORAGE_KEYS.mistakePatterns, mistakePatterns));
       }
-      commit({ attempts: saved.attempts, statistics, sessions, mistakePatterns }, writes);
+      commit(
+        { attempts: saved.attempts, archive: saved.archive, statistics, sessions, mistakePatterns },
+        writes,
+      );
     },
 
     saveSession: (session) => {
@@ -152,7 +161,13 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
 
     resetStatistics: () => {
       commit(
-        { sessions: [], attempts: [], statistics: emptyAppStatistics(), mistakePatterns: [] },
+        {
+          sessions: [],
+          attempts: [],
+          archive: emptyArchive(),
+          statistics: emptyAppStatistics(),
+          mistakePatterns: [],
+        },
         clearPracticeHistory(storage),
       );
     },
@@ -164,6 +179,7 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
           settings: defaultSettings(),
           sessions: [],
           attempts: [],
+          archive: emptyArchive(),
           statistics: emptyAppStatistics(),
           mistakePatterns: [],
         },

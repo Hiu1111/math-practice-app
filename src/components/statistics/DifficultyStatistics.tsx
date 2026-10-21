@@ -1,9 +1,14 @@
+import { memo } from 'react';
 import { DIFFICULTY_LEVELS, type AppStatistics } from '../../types';
 import { DIFFICULTY_INFO } from '../../utils/operations';
 import { StatCard } from './StatCard';
 
 /** One card per difficulty level (spec 6.6, statistics by difficulty). */
-export function DifficultyStatistics({ statistics }: { statistics: AppStatistics }) {
+export const DifficultyStatistics = memo(function DifficultyStatistics({
+  statistics,
+}: {
+  statistics: AppStatistics;
+}) {
   return (
     <section className="stats-section card" aria-labelledby="stats-by-level">
       <h2 id="stats-by-level" className="stats-section__title">
@@ -22,4 +27,4 @@ export function DifficultyStatistics({ statistics }: { statistics: AppStatistics
       </div>
     </section>
   );
-}
+});
