@@ -152,6 +152,26 @@ describe('settings take effect', () => {
   });
 });
 
+describe('privacy information (task 86)', () => {
+  it('tells families that progress stays in this browser and nothing personal is collected', () => {
+    renderApp('/settings');
+    expect(
+      screen.getByText(/stored only in this browser\. clearing your browser data also erases it/i),
+    ).toBeInTheDocument();
+    const privacy = screen.getByRole('list', { name: 'Privacy' });
+    expect(privacy).toHaveTextContent(/no name, email or other personal details/i);
+    expect(privacy).toHaveTextContent(/never sent over the internet/i);
+    expect(privacy).toHaveTextContent(/no ads and no tracking/i);
+  });
+
+  it('reminds students on every page that clearing browser data erases progress', () => {
+    renderApp('/');
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(
+      /saved only in this browser\. clearing your browser data will erase it/i,
+    );
+  });
+});
+
 describe('clear all application data', () => {
   it('requires a strongly worded confirmation', async () => {
     const { user } = renderApp('/settings');

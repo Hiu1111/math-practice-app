@@ -163,6 +163,11 @@ export function SettingsPage() {
           <p className="settings-section__intro">
             Everything is stored only in this browser. Clearing your browser data also erases it.
           </p>
+          <ul className="privacy-list" aria-label="Privacy">
+            <li>No account, and no name, email or other personal details are asked for.</li>
+            <li>Your practice is never sent over the internet; it stays on this device.</li>
+            <li>No ads and no tracking.</li>
+          </ul>
           <Button variant="danger" onClick={() => setConfirmingClear(true)}>
             Clear All Application Data
           </Button>

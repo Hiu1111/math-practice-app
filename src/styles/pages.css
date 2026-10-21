@@ -334,9 +334,19 @@
   border-color: var(--color-primary);
 }
 
-.radio-card:has(input:focus-visible) {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
+/*
+ * Keyboard focus ring for the (visually hidden) radio inside the card. Drawn by
+ * the input's next sibling rather than with .radio-card:has(...), because
+ * :has() needs Firefox 121+, and the build supports Firefox 114+.
+ * Same look as an outline: 3px thick, 3px outside the card's 3px border.
+ */
+.radio-card input:focus-visible + .radio-card__body::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 3px solid var(--color-focus);
+  border-radius: calc(var(--radius-md) + 6px);
+  pointer-events: none;
 }
 
 .radio-card.is-selected {
@@ -564,4 +574,15 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
+}
+
+/* Privacy promises on the Settings page (TODO task 86). */
+.privacy-list {
+  margin: 0 0 16px;
+  padding-left: 1.25em;
+  color: var(--color-muted);
+}
+
+.privacy-list li + li {
+  margin-top: 4px;
 }
