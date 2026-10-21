@@ -10,6 +10,7 @@ import {
   loadAppData,
   saveAttempts,
   writeJson,
+  type DataCategory,
   type WriteResult,
 } from '../services/storageService';
 import {
@@ -36,6 +37,8 @@ export interface AppDataState {
   statistics: AppStatistics;
   mistakePatterns: MistakePattern[];
   storageStatus: StorageStatus;
+  /** Data categories that could not be read when the app opened and were reset or repaired. */
+  repairedOnLoad: DataCategory[];
 }
 
 export interface AppStore {
@@ -50,6 +53,8 @@ export interface AppStore {
   resetStatistics: () => void;
   /** Erase everything the app stores and restore the defaults. */
   clearAllData: () => void;
+  /** Hide the "some saved data was reset" notice. */
+  dismissRepairNotice: () => void;
 }
 
 function defaultSettings(): AppSettings {
@@ -83,6 +88,7 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
     statistics: loaded.statistics,
     mistakePatterns: loaded.mistakePatterns,
     storageStatus: storage ? 'ok' : 'unavailable',
+    repairedOnLoad: loaded.repaired,
   };
   const listeners = new Set<() => void>();
 
@@ -91,7 +97,14 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
     state = {
       ...state,
       ...changes,
-      storageStatus: !storage ? 'unavailable' : failed ? 'write-failed' : 'ok',
+      // Nothing written (e.g. dismissing a notice): keep the current status.
+      storageStatus: !storage
+        ? 'unavailable'
+        : writes.length === 0
+          ? state.storageStatus
+          : failed
+            ? 'write-failed'
+            : 'ok',
     };
     listeners.forEach((listener) => listener());
   };
@@ -156,6 +169,10 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
         },
         clearAllAppData(storage),
       );
+    },
+
+    dismissRepairNotice: () => {
+      commit({ repairedOnLoad: [] }, []);
     },
   };
 }

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
+import { ErrorState } from '../components/common/ErrorState';
 import { AppProvider } from './AppProvider';
 import { routes } from './routes';
 
@@ -7,8 +9,10 @@ import { routes } from './routes';
 export default function App() {
   const [router] = useState(() => createBrowserRouter(routes));
   return (
-    <AppProvider>
-      <RouterProvider router={router} />
-    </AppProvider>
+    <ErrorBoundary fallback={<ErrorState />}>
+      <AppProvider>
+        <RouterProvider router={router} />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }

@@ -547,3 +547,21 @@
 .radio-card.is-disabled:hover {
   border-color: var(--color-border);
 }
+
+.storage-warning--info {
+  align-items: center;
+  border-color: #91a7ff;
+  background: var(--color-primary-soft);
+}
+
+.storage-warning--info p {
+  flex: 1;
+}
+
+/* Error page */
+.error-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}

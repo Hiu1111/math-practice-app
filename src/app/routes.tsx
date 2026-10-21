@@ -4,6 +4,7 @@ import { HomePage } from '../pages/HomePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PracticePage } from '../pages/PracticePage';
 import { PracticeSetupPage } from '../pages/PracticeSetupPage';
+import { RouteErrorPage } from '../pages/RouteErrorPage';
 import { SessionSummaryPage } from '../pages/SessionSummaryPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { StatisticsPage } from '../pages/StatisticsPage';
@@ -15,7 +16,7 @@ import { StatisticsPage } from '../pages/StatisticsPage';
  * Unknown paths render a friendly 404 page.
  */
 export const routes = createRoutesFromElements(
-  <Route element={<AppLayout />}>
+  <Route element={<AppLayout />} errorElement={<RouteErrorPage />}>
     <Route index element={<HomePage />} />
     <Route path="practice">
       <Route index element={<Navigate to="setup" replace />} />
