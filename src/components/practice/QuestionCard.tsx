@@ -16,6 +16,11 @@ export interface QuestionCardProps {
   autoFocus?: boolean;
   /** Called once, after the card is flipped and the student reports right or wrong. */
   onResult: (selectedAnswer: number, correct: boolean) => void;
+  /** Start from a saved state (after a page refresh). */
+  initialSelectedAnswer?: number | null;
+  initialFlipped?: boolean;
+  /** Called whenever the selected answer or flip state changes, so it can be saved. */
+  onCardStateChange?: (selectedAnswer: number | null, flipped: boolean) => void;
 }
 
 /**
@@ -30,14 +35,21 @@ export function QuestionCard({
   showExplanation = true,
   autoFocus = false,
   onResult,
+  initialSelectedAnswer = null,
+  initialFlipped = false,
+  onCardStateChange,
 }: QuestionCardProps) {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(initialSelectedAnswer);
+  const [isCardFlipped, setIsCardFlipped] = useState(
+    initialFlipped && initialSelectedAnswer !== null,
+  );
   const [recorded, setRecorded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const selectAnswer = (value: number) => {
-    if (!isCardFlipped) setSelectedAnswer(value);
+    if (isCardFlipped) return;
+    setSelectedAnswer(value);
+    onCardStateChange?.(value, false);
   };
 
   // Number keys 1–4 choose an answer (spec 14). Focus follows, so screen readers
@@ -50,14 +62,17 @@ export function QuestionCard({
       if (event.defaultPrevented || isTypingTarget(event.target) || isModalOpen()) return;
       event.preventDefault();
       setSelectedAnswer(question.choices[index]);
+      onCardStateChange?.(question.choices[index], false);
       cardRef.current?.querySelectorAll<HTMLButtonElement>('.answer-choice')[index]?.focus();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isCardFlipped, question.choices]);
+  }, [isCardFlipped, question.choices, onCardStateChange]);
 
   const flip = () => {
-    if (selectedAnswer !== null) setIsCardFlipped(true);
+    if (selectedAnswer === null) return;
+    setIsCardFlipped(true);
+    onCardStateChange?.(selectedAnswer, true);
   };
 
   // Spec 18: record only after an answer was chosen and the card was flipped, and only once.

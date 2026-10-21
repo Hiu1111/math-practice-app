@@ -148,6 +148,8 @@ export interface PracticeSessionCallbacks {
    * session). Defaults to regular questions from the session's operations and level.
    */
   generateNextQuestion?: (previous: Question | null) => Question | null;
+  /** Resume a session restored after a page refresh, instead of starting a new one. */
+  initialState?: PracticeSessionState | null;
 }
 
 /**
@@ -156,14 +158,27 @@ export interface PracticeSessionCallbacks {
  */
 export function usePracticeSession(
   config: SessionConfig,
-  { onAttemptRecorded, onSessionEnded, generateNextQuestion }: PracticeSessionCallbacks = {},
+  {
+    onAttemptRecorded,
+    onSessionEnded,
+    generateNextQuestion,
+    initialState,
+  }: PracticeSessionCallbacks = {},
 ) {
   const regularQuestion = (previous: Question | null) =>
     generateQuestionForOperations(config.operations, config.difficulty, { avoid: previous });
   const nextQuestionFor = generateNextQuestion ?? regularQuestion;
 
-  const [state, dispatch] = useReducer(practiceSessionReducer, config, (c) =>
-    createInitialState(c, nextQuestionFor(null) ?? regularQuestion(null), new Date().toISOString()),
+  const [state, dispatch] = useReducer(
+    practiceSessionReducer,
+    config,
+    (c) =>
+      initialState ??
+      createInitialState(
+        c,
+        nextQuestionFor(null) ?? regularQuestion(null),
+        new Date().toISOString(),
+      ),
   );
 
   const recordResult = (selectedAnswer: number, selfReportedCorrect: boolean) => {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useBlocker, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -14,6 +14,13 @@ import { DIFFICULTY_INFO, describeOperations } from '../utils/operations';
 import { isValidSessionConfig } from '../utils/validation';
 import { reviewablePatterns } from '../services/mistakeService';
 import { nextReviewQuestion } from '../services/similarQuestionGenerator';
+import {
+  clearActiveSession,
+  loadActiveSession,
+  saveActiveSession,
+  type ActiveSessionSnapshot,
+  type CardSnapshot,
+} from '../services/activeSessionService';
 import type { SetupLocationState } from './PracticeSetupPage';
 
 export interface PracticeLocationState {
@@ -35,35 +42,48 @@ export function PracticePage() {
   }
 
   // A new navigation (e.g. "Practice Again") gets a fresh session via a new key.
-  return <SessionStart key={location.key} config={config} />;
+  // A page refresh keeps the same key, which is how a saved session is found again.
+  return <SessionStart key={location.key} routeKey={location.key} config={config} />;
 }
 
 /**
- * Checks, once, that the session can start. A mistake-review session needs at
- * least one mistake to practice. This must not be re-checked during the session:
- * mastering the last mistake mid-session is a normal ending that should show
- * the summary, not bounce back to setup.
+ * Decides, once, how this visit of the session page starts:
+ * - resume the session saved for this visit (after a page refresh), or
+ * - start a new one; a mistake-review session needs at least one mistake.
+ * This must not be re-checked during the session: mastering the last mistake
+ * mid-session is a normal ending that should show the summary.
  */
-function SessionStart({ config }: { config: SessionConfig }) {
+function SessionStart({ routeKey, config }: { routeKey: string; config: SessionConfig }) {
   const store = useAppStore();
-  const [canStart] = useState(() => {
-    if (config.reviewMode !== 'mistake-review') return true;
+  const [start] = useState(() => {
+    const restored = loadActiveSession(routeKey, config);
+    if (restored) return { canStart: true, restored };
+    if (config.reviewMode !== 'mistake-review') return { canStart: true, restored: null };
     const { mistakePatterns, settings } = store.getState();
-    return reviewablePatterns(mistakePatterns, config, settings.masteryThreshold).length > 0;
+    const canStart =
+      reviewablePatterns(mistakePatterns, config, settings.masteryThreshold).length > 0;
+    return { canStart, restored: null };
   });
 
-  if (!canStart) {
+  if (!start.canStart) {
     const state: SetupLocationState = { notice: 'no-mistakes', config };
     return <Navigate to="/practice/setup" replace state={state} />;
   }
-  return <PracticeSessionView config={config} />;
+  return <PracticeSessionView routeKey={routeKey} config={config} restored={start.restored} />;
 }
 
-function PracticeSessionView({ config }: { config: SessionConfig }) {
+interface PracticeSessionViewProps {
+  routeKey: string;
+  config: SessionConfig;
+  restored: ActiveSessionSnapshot | null;
+}
+
+function PracticeSessionView({ routeKey, config, restored }: PracticeSessionViewProps) {
   const navigate = useNavigate();
   const store = useAppStore();
   const { settings } = useAppData();
   const { state, recordResult, endSession } = usePracticeSession(config, {
+    initialState: restored?.state ?? null,
     // Every counted answer is saved right away (spec 6.3), with the session's totals.
     onAttemptRecorded: store.recordAttempt,
     onSessionEnded: store.saveSession,
@@ -84,6 +104,60 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
   const navigatedRef = useRef(false);
 
   const total = sessionTotal(session);
+
+  // ------------------------------------------------------------------
+  // Session recovery (TODO task 74): save where the student is, so a page
+  // refresh comes back to the same question, answer and card side.
+  // ------------------------------------------------------------------
+  const cardRef = useRef<CardSnapshot>(
+    restored?.card ?? { questionId: currentQuestion.id, selectedAnswer: null, flipped: false },
+  );
+
+  useEffect(() => {
+    if (status !== 'active') {
+      clearActiveSession();
+      return;
+    }
+    if (cardRef.current.questionId !== currentQuestion.id) {
+      cardRef.current = { questionId: currentQuestion.id, selectedAnswer: null, flipped: false };
+    }
+    saveActiveSession({ routeKey, config, state, card: cardRef.current });
+  }, [routeKey, config, state, status, currentQuestion.id]);
+
+  const handleCardStateChange = (selectedAnswer: number | null, flipped: boolean) => {
+    cardRef.current = { questionId: currentQuestion.id, selectedAnswer, flipped };
+    saveActiveSession({ routeKey, config, state, card: cardRef.current });
+  };
+
+  // ------------------------------------------------------------------
+  // Navigation safety (TODO task 75): ask before leaving a session that has
+  // answers in it. Never after it is complete, and not for its own navigation
+  // to the summary.
+  // ------------------------------------------------------------------
+  const hasProgress = status === 'active' && session.attempted > 0;
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasProgress && !navigatedRef.current && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  // Closing the tab or typing a new address: the browser shows its own prompt.
+  useEffect(() => {
+    if (!hasProgress) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasProgress]);
+
+  const leaveSession = () => {
+    // End the session properly (totals and end time saved), then go where the student asked.
+    navigatedRef.current = true;
+    endSession();
+    clearActiveSession();
+    blocker.proceed?.();
+  };
 
   // When the session finishes, show the summary (or go back to setup if nothing was answered).
   useEffect(() => {
@@ -117,6 +191,12 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
 
   return (
     <PageContainer title="Practice" hideTitle width="narrow">
+      {restored && (
+        <p className="notice" role="status">
+          Welcome back! You are on question {restored.state.currentQuestionIndex + 1}, right where
+          you left off.
+        </p>
+      )}
       <SessionHeader session={session} total={total} />
       {/* The live region stays mounted; only the inner text is replaced, so it is announced. */}
       <p className="feedback" aria-live="polite">
@@ -135,8 +215,15 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
           totalQuestions={total}
           animate={settings.cardAnimation}
           showExplanation={settings.showExplanations}
-          autoFocus={currentQuestionIndex > 0}
+          autoFocus={currentQuestionIndex > 0 || restored !== null}
           onResult={handleResult}
+          onCardStateChange={handleCardStateChange}
+          initialSelectedAnswer={
+            restored?.card.questionId === currentQuestion.id ? restored.card.selectedAnswer : null
+          }
+          initialFlipped={
+            restored?.card.questionId === currentQuestion.id ? restored.card.flipped : false
+          }
         />
       )}
 
@@ -164,6 +251,21 @@ function PracticeSessionView({ config }: { config: SessionConfig }) {
           setConfirmingEnd(false);
           endSession();
         }}
+      />
+
+      <ConfirmDialog
+        open={blocker.state === 'blocked'}
+        title="Leave this session?"
+        message={
+          <p>
+            You answered {session.attempted} {session.attempted === 1 ? 'question' : 'questions'}.
+            Your answers so far are saved. Leaving ends this session.
+          </p>
+        }
+        confirmLabel="Leave Session"
+        cancelLabel="Keep Practicing"
+        onCancel={() => blocker.reset?.()}
+        onConfirm={leaveSession}
       />
     </PageContainer>
   );

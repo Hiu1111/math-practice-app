@@ -1,3 +1,4 @@
+import { clearActiveSession } from '../services/activeSessionService';
 import { updateMistakePatterns } from '../services/mistakeService';
 import { applyAttempt, sessionActivityTime } from '../services/statisticsService';
 import {
@@ -144,6 +145,7 @@ export function createAppStore(storage: Storage | null = getBrowserStorage()): A
     },
 
     clearAllData: () => {
+      clearActiveSession();
       commit(
         {
           settings: defaultSettings(),
