@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import { SCHEMA_VERSION, STORAGE_KEYS } from '../services/storageService';
-import { answerQuestion, startSession } from '../test/practiceHelpers';
+import { answerButton, answerQuestion, startSession } from '../test/practiceHelpers';
 import { renderApp } from '../test/renderApp';
 import { isSamePattern } from '../services/mistakeService';
 import type { MistakePattern, PracticeAttempt, PracticeSession } from '../types';
@@ -67,7 +67,7 @@ describe('persistence through the real UI', () => {
     });
     await answerQuestion(user, true);
     expect(screen.getByRole('status')).toHaveTextContent(/could not save your latest progress/i);
-    expect(screen.getByRole('button', { name: /^Answer 1:/ })).toBeInTheDocument();
+    expect(answerButton(1)).toBeInTheDocument();
     setItem.mockRestore();
   });
 

@@ -29,9 +29,15 @@ export async function startSession({
   return result;
 }
 
+/** The answer button at a position (1–4) on the visible card. */
+export function answerButton(position: number): HTMLElement {
+  const group = screen.getByRole('group', { name: /answer choices/i });
+  return within(group).getAllByRole('button')[position - 1];
+}
+
 /** Select an answer, flip the card and report the result. */
 export async function answerQuestion(user: UserEvent, correct: boolean, choice = 1) {
-  await user.click(screen.getByRole('button', { name: new RegExp(`^Answer ${choice}:`) }));
+  await user.click(answerButton(choice));
   await user.click(screen.getByRole('button', { name: /flip card/i }));
   await user.click(
     screen.getByRole('button', { name: correct ? /i got it right/i : /i got it wrong/i }),

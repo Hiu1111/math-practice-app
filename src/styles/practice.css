@@ -61,8 +61,10 @@
   transition: none;
 }
 
+/* display: none (not visibility: hidden): Chromium would not move focus into a face
+   that had been visibility: hidden, so the revealed answer lost focus after a flip. */
 .flip-card--static .flip-card__face[aria-hidden='true'] {
-  visibility: hidden;
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -78,7 +80,7 @@
   }
 
   .flip-card__face[aria-hidden='true'] {
-    visibility: hidden;
+    display: none;
   }
 }
 
@@ -551,4 +553,30 @@
   border-color: #e8590c;
   background: #fff0e6;
   color: #a8380a;
+}
+
+/* Keyboard shortcut hint: only useful with a physical keyboard. */
+.kbd-hint {
+  margin: -4px 0 10px;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.kbd-hint kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 4px;
+  border: 1px solid var(--color-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .kbd-hint {
+    display: none;
+  }
 }

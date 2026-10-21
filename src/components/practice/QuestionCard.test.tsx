@@ -33,17 +33,17 @@ function renderCard(props: Partial<QuestionCardProps> = {}) {
   return { user, onResult, ...result };
 }
 
-const choice = (n: number) =>
-  screen.getByRole('button', { name: new RegExp(`^Answer \\d: ${n}$`) });
+/** An answer button is named by its visible number, e.g. "56". */
+const choice = (n: number) => screen.getByRole('button', { name: String(n) });
 const flipButton = () => screen.getByRole('button', { name: /flip card/i });
 
 describe('QuestionCard front', () => {
   it('shows the question, four choices and the question number', () => {
     renderCard();
     expect(screen.getByText('Question 3 of 10', VISIBLE)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'What is 7 times 8?' })).toHaveTextContent(
-      '7 × 8 = ?',
-    );
+    expect(
+      screen.getByRole('heading', { name: 'Question 3 of 10. What is 7 times 8?' }),
+    ).toHaveTextContent('7 × 8 = ?');
     const group = screen.getByRole('group', { name: /answer choices/i });
     expect(within(group).getAllByRole('button')).toHaveLength(4);
   });
@@ -173,7 +173,7 @@ describe('QuestionCard keyboard use', () => {
   it('can be completed with Tab, Enter and Space only', async () => {
     const { user, onResult } = renderCard();
     await user.tab(); // first answer choice
-    expect(screen.getByRole('button', { name: /^Answer 1:/ })).toHaveFocus();
+    expect(screen.getByRole('button', { name: '48' })).toHaveFocus();
     await user.keyboard(' ');
     await user.tab();
     await user.tab();
@@ -184,5 +184,73 @@ describe('QuestionCard keyboard use', () => {
     await user.tab(); // from the revealed answer to "I Got It Right"
     await user.keyboard('{Enter}');
     expect(onResult).toHaveBeenCalledWith(48, true);
+  });
+});
+
+describe('QuestionCard accessibility (Phase 16)', () => {
+  it('names each answer by its visible number and exposes its number-key shortcut', () => {
+    renderCard();
+    const buttons = within(screen.getByRole('group', { name: /answer choices/i })).getAllByRole(
+      'button',
+    );
+    expect(buttons.map((b) => b.getAttribute('aria-keyshortcuts'))).toEqual(['1', '2', '3', '4']);
+    expect(screen.getByRole('button', { name: '56' })).toHaveAttribute('aria-keyshortcuts', '2');
+  });
+
+  it('includes the question number in what screen readers hear', () => {
+    renderCard({ totalQuestions: null, questionNumber: 7 });
+    expect(screen.getByRole('heading', { level: 2 })).toHaveAccessibleName(
+      'Question 7. What is 7 times 8?',
+    );
+  });
+
+  it('selects answers with the number keys 1–4 and moves focus to the chosen answer', async () => {
+    const { user } = renderCard();
+    await user.keyboard('3');
+    expect(choice(54)).toHaveAttribute('aria-pressed', 'true');
+    expect(choice(54)).toHaveFocus();
+    await user.keyboard('1');
+    expect(choice(48)).toHaveAttribute('aria-pressed', 'true');
+    expect(choice(54)).toHaveAttribute('aria-pressed', 'false');
+    expect(flipButton()).toBeEnabled();
+  });
+
+  it('ignores number keys with Ctrl/Cmd/Alt, other keys, and after the card is flipped', async () => {
+    const { user } = renderCard();
+    await user.keyboard('{Control>}2{/Control}');
+    await user.keyboard('{Meta>}2{/Meta}');
+    await user.keyboard('5');
+    expect(flipButton()).toBeDisabled();
+    await user.keyboard('2');
+    await user.click(flipButton());
+    await user.keyboard('4');
+    expect(screen.getByText(/your answer:/i)).toHaveTextContent('Your answer: 56');
+  });
+
+  it('does not react to number keys typed into a text field', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <input aria-label="Notes" />
+        <QuestionCard
+          question={question}
+          questionNumber={1}
+          totalQuestions={5}
+          onResult={vi.fn()}
+        />
+      </>,
+    );
+    await user.type(screen.getByRole('textbox', { name: 'Notes' }), '2');
+    expect(choice(56)).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('completes a whole card with the keyboard alone: number key, Enter, Enter', async () => {
+    const { user, onResult } = renderCard();
+    await user.keyboard('4'); // focus moves to answer 4 (64)
+    await user.tab(); // Flip Card
+    await user.keyboard('{Enter}');
+    await user.tab(); // I Got It Right
+    await user.keyboard('{Enter}');
+    expect(onResult).toHaveBeenCalledWith(64, true);
   });
 });

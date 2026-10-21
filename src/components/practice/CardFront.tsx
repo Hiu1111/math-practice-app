@@ -43,11 +43,11 @@ export function CardFront({
         ref={headingRef}
         tabIndex={-1}
         className="math-question"
-        aria-label={speakQuestion(
+        aria-label={`${questionCountLabel(questionNumber, totalQuestions)}. ${speakQuestion(
           question.operation,
           question.firstOperand,
           question.secondOperand,
-        )}
+        )}`}
       >
         {question.displayText} = ?
       </h2>
@@ -63,6 +63,9 @@ export function CardFront({
           />
         ))}
       </div>
+      <p className="kbd-hint">
+        Tip: press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> or <kbd>4</kbd> to choose an answer.
+      </p>
       <p className="question-card__hint" id={`flip-hint-${question.id}`}>
         {hasAnswer ? 'Ready? Flip the card to check!' : 'Pick an answer, then flip the card.'}
       </p>

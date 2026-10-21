@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { createAppStore } from '../app/appStore';
 import { STORAGE_KEYS } from '../services/storageService';
-import { answerQuestion, startSession } from '../test/practiceHelpers';
+import { answerButton, answerQuestion, startSession } from '../test/practiceHelpers';
 import { renderApp } from '../test/renderApp';
 import { DEFAULT_SETTINGS, type AppSettings } from '../types';
 import * as sound from '../utils/sound';
@@ -125,7 +125,7 @@ describe('settings take effect', () => {
   it('turning off explanations hides them on the back of the card', async () => {
     createAppStore().updateSettings({ showExplanations: false });
     const { user } = await startSession();
-    await user.click(screen.getByRole('button', { name: /^Answer 1:/ }));
+    await user.click(answerButton(1));
     await user.click(screen.getByRole('button', { name: /flip card/i }));
     expect(document.querySelector('.explanation')).toBeNull();
   });

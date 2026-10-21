@@ -10,14 +10,18 @@ interface AnswerChoiceProps {
   onSelect: (value: number) => void;
 }
 
-/** One multiple-choice answer, shown as a large button. */
+/**
+ * One multiple-choice answer, shown as a large button. Its accessible name is
+ * the visible number (so voice control can say "click 56"); the small position
+ * number is the keyboard shortcut, exposed with aria-keyshortcuts.
+ */
 export function AnswerChoice({ value, position, selected, locked, onSelect }: AnswerChoiceProps) {
   return (
     <button
       type="button"
       className={`answer-choice${selected ? ' is-selected' : ''}`}
       aria-pressed={selected}
-      aria-label={`Answer ${position}: ${formatNumber(value)}`}
+      aria-keyshortcuts={String(position)}
       disabled={locked}
       onClick={() => onSelect(value)}
     >

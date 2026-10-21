@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../../types';
 import { CardBack } from './CardBack';
 import { CardFront } from './CardFront';
+import { answerShortcutIndex, isModalOpen, isTypingTarget } from '../../utils/keyboard';
 
 export interface QuestionCardProps {
   question: Question;
@@ -33,10 +34,27 @@ export function QuestionCard({
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [recorded, setRecorded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const selectAnswer = (value: number) => {
     if (!isCardFlipped) setSelectedAnswer(value);
   };
+
+  // Number keys 1–4 choose an answer (spec 14). Focus follows, so screen readers
+  // announce the chosen answer. Ignored while typing or when a dialog is open.
+  useEffect(() => {
+    if (isCardFlipped) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const index = answerShortcutIndex(event);
+      if (index < 0 || index >= question.choices.length) return;
+      if (event.defaultPrevented || isTypingTarget(event.target) || isModalOpen()) return;
+      event.preventDefault();
+      setSelectedAnswer(question.choices[index]);
+      cardRef.current?.querySelectorAll<HTMLButtonElement>('.answer-choice')[index]?.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isCardFlipped, question.choices]);
 
   const flip = () => {
     if (selectedAnswer !== null) setIsCardFlipped(true);
@@ -58,7 +76,7 @@ export function QuestionCard({
     .join(' ');
 
   return (
-    <div className={classes} data-testid="question-card">
+    <div className={classes} data-testid="question-card" ref={cardRef}>
       <div className="flip-card__inner">
         <div
           className="flip-card__face flip-card__face--front"

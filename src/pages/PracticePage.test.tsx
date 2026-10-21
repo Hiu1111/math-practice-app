@@ -1,5 +1,5 @@
 import { screen, within } from '@testing-library/react';
-import { answerQuestion, startSession, VISIBLE } from '../test/practiceHelpers';
+import { answerButton, answerQuestion, startSession, VISIBLE } from '../test/practiceHelpers';
 
 const progress = () => screen.getByRole('progressbar', { name: /session progress/i });
 const tally = () => screen.getByRole('list', { name: /score so far/i });
@@ -19,7 +19,7 @@ describe('practice session: questions and cards', () => {
     const { user } = await startSession({ operations: [/subtraction/i], level: /easy/i });
     const text = screen.getByRole('heading', { level: 2 }).textContent ?? '';
     const [, a, b] = text.match(/^(\d+) − (\d+)/) ?? [];
-    await user.click(screen.getByRole('button', { name: /^Answer 1:/ }));
+    await user.click(answerButton(1));
     await user.click(screen.getByRole('button', { name: /flip card/i }));
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(`= ${+a - +b}`);
   });
@@ -31,7 +31,8 @@ describe('practice session: questions and cards', () => {
     expect(screen.getByText('Question 2 of 10', VISIBLE)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /flip card/i })).toBeDisabled();
     const pressed = screen
-      .getAllByRole('button', { name: /^Answer/ })
+      .getAllByRole('button')
+      .filter((b) => b.classList.contains('answer-choice'))
       .filter((b) => b.getAttribute('aria-pressed') === 'true');
     expect(pressed).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
